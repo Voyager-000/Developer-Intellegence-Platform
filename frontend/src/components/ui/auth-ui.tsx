@@ -1060,6 +1060,17 @@ export function AuthUI({ onLoginSuccess }: AuthUIProps) {
               </svg>
               <span className="font-semibold text-xs">Continue with Google</span>
             </Button>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setStatusMsg({ type: "success", text: "Entering workspace…" });
+                if (onLoginSuccess) onLoginSuccess("guest@developer-intelligence.io", "developer", "guest_access_token");
+              }}
+              className="w-full border-slate-800 bg-transparent hover:bg-slate-900 text-slate-200 h-11"
+            >
+              Continue as guest
+            </Button>
           </div>
 
         </div>

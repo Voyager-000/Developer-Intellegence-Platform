@@ -6,23 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Developer Intelligence — Hover Image Trail & Folder Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       html, body { margin: 0; min-height: 100%; background: #dde3ec; color: #0a0f1d; }
-      #boot { font-family: Inter, system-ui, sans-serif; padding: 48px 24px; max-width: 40rem; }
-      #boot h1 { font-size: 1.5rem; margin: 0 0 8px; }
-      #boot p { margin: 0; color: #334155; }
+      #boot { font-family: Inter, system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 48px 24px; max-width: 56rem; }
+      #boot .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: #64748b; margin: 0 0 16px; }
+      #boot h1 { font-size: clamp(2.4rem, 8vw, 5.5rem); line-height: .95; margin: 0; font-weight: 900; }
+      #boot h1 span { color: #4f46e5; }
+      #boot p { margin: 20px 0 0; color: #334155; max-width: 36rem; }
     </style>
   </head>
   <body>
     <div id="root">
       <div id="boot">
-        <h1>Developer Intelligence</h1>
-        <p>Loading workspace…</p>
+        <p class="kicker">Autonomous Deep Inspection</p>
+        <h1>Drop Any Repository <span>To Scan</span></h1>
+        <p>Opening Developer Intelligence…</p>
       </div>
     </div>
+    <script>
+      (function () {
+        var tries = 0;
+        setTimeout(function check() {
+          if (!document.getElementById("boot")) return;
+          tries += 1;
+          if (tries === 1 && !sessionStorage.getItem("dev_intel_boot_reload")) {
+            sessionStorage.setItem("dev_intel_boot_reload", "1");
+            location.reload();
+            return;
+          }
+          var boot = document.getElementById("boot");
+          if (boot) {
+            boot.innerHTML = '<p class="kicker">Developer Intelligence</p><h1>Refresh to open the workspace</h1><p><a href="/" style="color:#4f46e5;font-weight:700">Reload the site</a></p>';
+          }
+        }, 6000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,9 +1,10 @@
 import os
+import re
 from typing import Optional
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response
 from backend.app.core.config import settings
 from backend.app.core.database import Base, engine, SessionLocal
 from backend.app.models.entities import User, Project, generate_id
@@ -84,16 +85,32 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Static UI serving: React Landing & Drag-Drop App + Extension Webview Dashboard
 react_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+public_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "public"))
 webview_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "webview-ui"))
 
-if os.path.exists(os.path.join(react_dist, "assets")):
-    app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="react-assets")
+
+def _frontend_root() -> Optional[str]:
+    candidates = [public_dir, react_dist]
+    for root in candidates:
+        if os.path.exists(os.path.join(root, "index.html")) and os.path.isdir(os.path.join(root, "assets")):
+            return root
+    for root in candidates:
+        if os.path.exists(os.path.join(root, "index.html")):
+            return root
+    return None
+
+
+frontend_root = _frontend_root()
+
+if frontend_root and os.path.isdir(os.path.join(frontend_root, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_root, "assets")), name="react-assets")
 
 for images_dir in (
+    os.path.join(frontend_root, "images") if frontend_root else "",
     os.path.join(react_dist, "images"),
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "images")),
 ):
-    if os.path.exists(images_dir):
+    if images_dir and os.path.exists(images_dir):
         app.mount("/images", StaticFiles(directory=images_dir), name="hero-images")
         break
 
@@ -107,19 +124,36 @@ if os.path.exists(webview_dir):
         return FileResponse(os.path.join(webview_dir, "index.html"))
 
 def _frontend_index() -> Optional[str]:
-    for candidate in (
-        os.path.join(react_dist, "index.html"),
-        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "public", "index.html")),
-        os.path.join(webview_dir, "index.html") if os.path.exists(webview_dir) else "",
-    ):
-        if candidate and os.path.exists(candidate):
-            return candidate
+    if frontend_root:
+        index_path = os.path.join(frontend_root, "index.html")
+        if os.path.exists(index_path):
+            return index_path
     return None
+
+
+@app.middleware("http")
+async def allow_asset_cors(request: Request, call_next):
+    if request.method == "OPTIONS" and request.url.path.startswith("/assets/"):
+        return Response(
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+            },
+        )
+    response = await call_next(request)
+    if request.url.path.startswith("/assets/"):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return response
 
 
 @app.get("/")
 def serve_root():
     index_path = _frontend_index()
     if index_path:
-        return FileResponse(index_path)
+        with open(index_path, "r", encoding="utf-8") as handle:
+            html = handle.read()
+        html = re.sub(r"\s+crossorigin(=\"[^\"]*\")?", "", html)
+        return HTMLResponse(html)
     return {"message": "Developer Intelligence API Running"}
