@@ -1,17 +1,36 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M8 5v14l11-7z'/></svg>" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235b5df4'><path d='M8 5v14l11-7z'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Developer Intelligence — Hover Image Trail & Folder Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      html, body { margin: 0; min-height: 100%; background: #dde3ec; color: #0a0f1d; }
+      #boot { font-family: Inter, system-ui, sans-serif; padding: 48px 24px; max-width: 40rem; }
+      #boot h1 { font-size: 1.5rem; margin: 0 0 8px; }
+      #boot p { margin: 0; color: #334155; }
+    </style>
   </head>
-  <body class="bg-[#06080d] text-slate-100 min-h-screen">
-    <div id="root"></div>
+  <body>
+    <div id="root">
+      <div id="boot">
+        <h1>Developer Intelligence</h1>
+        <p>Loading workspace…</p>
+      </div>
+    </div>
+    <script>
+      window.addEventListener("error", function () {
+        var boot = document.getElementById("boot");
+        if (boot) {
+          boot.innerHTML = "<h1>Developer Intelligence</h1><p>The workspace failed to load. Refresh the page, or press Ctrl+Shift+R to bypass cache.</p>";
+        }
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

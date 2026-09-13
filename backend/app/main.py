@@ -105,10 +105,12 @@ if os.path.exists(webview_dir):
     def serve_dashboard():
         return FileResponse(os.path.join(webview_dir, "index.html"))
 
-@app.get("/")
-def serve_root():
-    if os.path.exists(os.path.join(react_dist, "index.html")):
-        return FileResponse(os.path.join(react_dist, "index.html"))
-    elif os.path.exists(os.path.join(webview_dir, "index.html")):
-        return FileResponse(os.path.join(webview_dir, "index.html"))
-    return {"message": "Developer Intelligence API Running"}
+# On Vercel the built frontend is served from public/. Keep this route for local uvicorn only.
+if os.getenv("VERCEL") != "1":
+    @app.get("/")
+    def serve_root():
+        if os.path.exists(os.path.join(react_dist, "index.html")):
+            return FileResponse(os.path.join(react_dist, "index.html"))
+        elif os.path.exists(os.path.join(webview_dir, "index.html")):
+            return FileResponse(os.path.join(webview_dir, "index.html"))
+        return {"message": "Developer Intelligence API Running"}
