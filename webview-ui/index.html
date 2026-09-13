@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Intelligence Extension — Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">&lt;/&gt;</div>
+      <div class="brand-title">
+        <h1>Developer Intelligence Extension</h1>
+        <p>AI-Powered Code Quality • Database Optimization • Security Analysis • Deployment Validation</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge-tag">⚡ Code Analysis</div>
+      <div class="badge-tag">🛠️ Self-Correction</div>
+      <div class="badge-tag">🗄️ Database Optimization</div>
+      <div class="badge-tag">🛡️ Security Analysis</div>
+      <div class="badge-tag">🚀 Deployment Validation</div>
+    </div>
+  </header>
+
+  <!-- Layout Body -->
+  <div class="app-body">
+
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <nav class="nav-group">
+        <a class="nav-item active" data-tab="overview">
+          <span>📊 Overview</span>
+        </a>
+        <a class="nav-item" data-tab="issues">
+          <span>⚠️ Issues</span>
+          <span class="nav-badge">12</span>
+        </a>
+        <a class="nav-item" data-tab="security">
+          <span>🛡️ Security</span>
+          <span class="nav-badge" style="background-color: var(--color-medium);">3</span>
+        </a>
+        <a class="nav-item" data-tab="database">
+          <span>🗄️ Database</span>
+        </a>
+        <a class="nav-item" data-tab="deployment">
+          <span>🚀 Deployment</span>
+        </a>
+        <a class="nav-item" data-tab="history">
+          <span>🕒 History</span>
+        </a>
+      </nav>
+
+      <!-- Project Health Scorecard -->
+      <div class="sidebar-card">
+        <div style="font-weight: 700; font-size: 12px; margin-bottom: 6px;">Project Health</div>
+        <div class="gauge-container" id="health-gauge">
+          <svg class="gauge-svg" width="110" height="110">
+            <circle class="gauge-bg" cx="55" cy="55" r="45"></circle>
+            <circle class="gauge-progress" cx="55" cy="55" r="45"></circle>
+          </svg>
+          <div class="gauge-text">
+            <div class="gauge-score">87</div>
+            <div class="gauge-label">Good Health</div>
+          </div>
+        </div>
+        <div class="health-breakdown">
+          <div class="breakdown-row"><span>Code Quality</span><span class="breakdown-val">88</span></div>
+          <div class="breakdown-row"><span>Security</span><span class="breakdown-val">92</span></div>
+          <div class="breakdown-row"><span>Performance</span><span class="breakdown-val">79</span></div>
+          <div class="breakdown-row"><span>Dependencies</span><span class="breakdown-val">94</span></div>
+          <div class="breakdown-row"><span>Testing</span><span class="breakdown-val">82</span></div>
+          <div class="breakdown-row"><span>Deployment</span><span class="breakdown-val">87</span></div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="sidebar-card" style="flex: 1; display: flex; flex-direction: column;">
+        <div style="font-weight: 700; font-size: 12px; margin-bottom: 8px;">Activity Notifications</div>
+        <div id="notifications-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto;">
+          <div style="padding: 8px 12px; background: var(--bg-card); border-radius: 6px; border-left: 3px solid #3fb950; font-size: 11px;">
+            <strong>Fix validated successfully</strong>
+            <div style="color: var(--text-muted)">Null reference fix passed all checks.</div>
+            <span style="font-size: 9px; color: #8b949e">2m ago</span>
+          </div>
+          <div style="padding: 8px 12px; background: var(--bg-card); border-radius: 6px; border-left: 3px solid #ff7b72; font-size: 11px;">
+            <strong>High-severity vulnerability</strong>
+            <div style="color: var(--text-muted)">SQL Injection in src/database.py</div>
+            <span style="font-size: 9px; color: #8b949e">12m ago</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+
+      <!-- TAB 1: OVERVIEW -->
+      <div id="tab-overview" class="tab-section">
+        <div class="dashboard-grid">
+
+          <!-- 1. Code Analysis - Inline Diagnostics -->
+          <div class="col-8">
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title"><span>💻 Code Analysis — Inline Diagnostics</span></div>
+                <div style="font-size: 11px; color: var(--text-muted);">sample-project/src/auth.py</div>
+              </div>
+              <div class="panel-body">
+                <div class="editor-container">
+                  <div class="editor-tabs">
+                    <div class="editor-tab">auth.py ✕</div>
+                  </div>
+                  <div class="code-lines" id="active-code-view">
+                    <div class="code-line"><span class="line-num">1</span><span class="code-content"><span style="color:#ff7b72">from</span> database <span style="color:#ff7b72">import</span> get_user</span></div>
+                    <div class="code-line"><span class="line-num">2</span><span class="code-content"></span></div>
+                    <div class="code-line"><span class="line-num">3</span><span class="code-content"><span style="color:#ff7b72">def</span> <span style="color:#d2a8ff">authenticate</span>(user_id):</span></div>
+                    <div class="code-line"><span class="line-num">4</span><span class="code-content">    user = get_user(user_id)</span></div>
+                    <div class="code-line code-highlight-error"><span class="line-num">5</span><span class="code-content">    print(user.name)  <span style="color:#8b949e"># Potential null reference</span></span></div>
+                    <div class="code-line"><span class="line-num">6</span><span class="code-content">    <span style="color:#ff7b72">return</span> user</span></div>
+                  </div>
+                </div>
+
+                <!-- Inline Diagnostic Banner -->
+                <div class="inline-diagnostic" id="inline-diagnostic-banner">
+                  <div class="diagnostic-header">
+                    <div class="diagnostic-title">
+                      <span>⚠️ Potential null reference</span>
+                    </div>
+                    <div class="diagnostic-badges">
+                      <span class="badge badge-medium">Severity: Medium</span>
+                      <span class="badge badge-low">Confidence: 94%</span>
+                    </div>
+                  </div>
+                  <p style="color: var(--text-muted); font-size: 12px;">user can be None when the lookup fails.</p>
+                  <div class="action-row">
+                    <button class="btn btn-action" id="btn-quick-fix">⚡ Quick Fix</button>
+                    <button class="btn btn-secondary" id="btn-explain">💡 Explain</button>
+                    <button class="btn btn-secondary">View Details</button>
+                  </div>
+                </div>
+
+                <!-- Quick Fix Preview (Hidden by default, shown on Quick Fix click) -->
+                <div id="quick-fix-panel" style="display: none; margin-top: 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                      <strong style="color: #ff7b72;">Suggested Fix</strong>: Add a null check before accessing user.name.
+                      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Confidence: 94% • Risk: Low</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn btn-action" id="btn-validate-fix">🔍 Validate Fix</button>
+                      <button class="btn btn-primary" id="btn-apply-fix">✓ Apply Fix</button>
+                    </div>
+                  </div>
+                  
+                  <div class="diff-container">
+                    <div class="diff-before">
+                      <div class="diff-panel-header">Before</div>
+                      <div>user = get_user(id)</div>
+                      <div style="background: rgba(248, 81, 73, 0.2); padding: 2px;">- print(user.name)</div>
+                    </div>
+                    <div class="diff-after">
+                      <div class="diff-panel-header">After</div>
+                      <div>user = get_user(id)</div>
+                      <div style="background: rgba(46, 160, 67, 0.2); padding: 2px;">+ if user:</div>
+                      <div style="background: rgba(46, 160, 67, 0.2); padding: 2px;">+     print(user.name)</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Fix Validation Panel -->
+          <div class="col-4">
+            <div class="panel-card" id="validation-panel">
+              <div class="panel-header">
+                <div class="panel-title"><span>🛡️ Fix Validation — 5-Stage Pipeline</span></div>
+                <span class="badge badge-low">All Checks Passed</span>
+              </div>
+              <div class="panel-body">
+                <div class="checklist">
+                  <div class="check-item">
+                    <span>✓ Syntax Check</span>
+                    <strong style="color: #3fb950;">Passed</strong>
+                  </div>
+                  <div class="check-item">
+                    <span>✓ Compilation Check</span>
+                    <strong style="color: #3fb950;">Passed</strong>
+                  </div>
+                  <div class="check-item">
+                    <span>✓ Unit Tests</span>
+                    <strong style="color: #3fb950;">Passed</strong>
+                  </div>
+                  <div class="check-item">
+                    <span>✓ Security Scan</span>
+                    <strong style="color: #3fb950;">Passed</strong>
+                  </div>
+                  <div class="check-item">
+                    <span>✓ Regression Test</span>
+                    <strong style="color: #3fb950;">Passed</strong>
+                  </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px;">
+                    <span>Validation Score</span>
+                    <strong style="color: #3fb950;">96%</strong>
+                  </div>
+                  <div style="height: 8px; background: #21262d; border-radius: 4px; overflow: hidden;">
+                    <div id="validation-progress-fill" style="width: 96%; height: 100%; background: #2ea043; border-radius: 4px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Issues Panel -->
+          <div class="col-4">
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title"><span>⚠️ Detected Issues</span></div>
+                <span class="badge badge-critical">12 Total</span>
+              </div>
+              <div class="panel-body" style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 10px; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--color-critical); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span class="badge badge-critical">CRITICAL</span>
+                    <div style="font-weight: 600; margin-top: 4px;">SQL Injection</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">src/database.py:42</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding: 4px 8px;">Open</button>
+                </div>
+
+                <div style="padding: 10px; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--color-high); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span class="badge badge-high">HIGH</span>
+                    <div style="font-weight: 600; margin-top: 4px;">Null Reference</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">src/user.py:87</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding: 4px 8px;">Open</button>
+                </div>
+
+                <div style="padding: 10px; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--color-medium); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span class="badge badge-medium">MEDIUM</span>
+                    <div style="font-weight: 600; margin-top: 4px;">High Complexity</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">src/payment.py:120</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding: 4px 8px;">Open</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Database Performance -->
+          <div class="col-4">
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title"><span>🗄️ Database Performance</span></div>
+                <button class="btn btn-action" id="btn-optimize-db" style="padding: 4px 10px;">Optimize</button>
+              </div>
+              <div class="panel-body">
+                <div style="display: flex; align-items: center; justify-content: space-around; margin-bottom: 12px;">
+                  <div class="gauge-container" id="db-gauge">
+                    <svg class="gauge-svg" width="80" height="80">
+                      <circle class="gauge-bg" cx="40" cy="40" r="32"></circle>
+                      <circle class="gauge-progress" cx="40" cy="40" r="32"></circle>
+                    </svg>
+                    <div class="gauge-text">
+                      <div class="gauge-score" style="font-size: 18px;">72</div>
+                    </div>
+                  </div>
+                  <div style="font-size: 11px; display: flex; flex-direction: column; gap: 4px;">
+                    <div>Slow Queries: <strong style="color: #ff7b72">3</strong></div>
+                    <div>Recommendations: <strong style="color: #58a6ff">5</strong></div>
+                    <div>Avg Response: <strong style="color: #d29922">184 ms</strong></div>
+                  </div>
+                </div>
+
+                <div id="db-optimization-result"></div>
+
+                <table class="custom-table">
+                  <thead>
+                    <tr><th>Query</th><th>Latency</th><th>Impact</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>user_lookup</td><td>340 ms</td><td><span class="badge badge-high">High</span></td></tr>
+                    <tr><td>order_search</td><td>210 ms</td><td><span class="badge badge-medium">Medium</span></td></tr>
+                    <tr><td>dashboard_query</td><td>184 ms</td><td><span class="badge badge-medium">Medium</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Deployment Validation -->
+          <div class="col-4">
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title"><span>🚀 Deployment Readiness</span></div>
+                <button class="btn btn-action" id="btn-run-dep-val" style="padding: 4px 10px;">Validate</button>
+              </div>
+              <div class="panel-body">
+                <div style="display: flex; align-items: center; justify-content: space-around; margin-bottom: 12px;">
+                  <div class="gauge-container" id="dep-gauge">
+                    <svg class="gauge-svg" width="80" height="80">
+                      <circle class="gauge-bg" cx="40" cy="40" r="32"></circle>
+                      <circle class="gauge-progress" cx="40" cy="40" r="32"></circle>
+                    </svg>
+                    <div class="gauge-text">
+                      <div class="gauge-score" style="font-size: 18px;">87</div>
+                    </div>
+                  </div>
+                  <div style="text-align: center;">
+                    <span class="badge badge-medium" style="font-size: 12px; padding: 4px 10px;">REVIEW</span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">2 warnings • 0 blockers</div>
+                  </div>
+                </div>
+
+                <div class="checklist">
+                  <div class="check-item"><span>Build</span><strong style="color: #3fb950;">Passed</strong></div>
+                  <div class="check-item"><span>Tests</span><strong style="color: #3fb950;">Passed</strong></div>
+                  <div class="check-item"><span>Dependencies</span><strong style="color: #3fb950;">Passed</strong></div>
+                  <div class="check-item warning"><span>Security</span><strong style="color: #d29922;">Warning</strong></div>
+                  <div class="check-item warning"><span>Performance</span><strong style="color: #d29922;">Warning</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: ISSUES -->
+      <div id="tab-issues" class="tab-section" style="display: none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span>Issues Management Filter</span></div>
+          </div>
+          <div class="panel-body">
+            <p style="color: var(--text-muted);">Browse all 12 detected static code, database, and security issues across the active repository.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: SECURITY -->
+      <div id="tab-security" class="tab-section" style="display: none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span>🛡️ Security Posture Dashboard</span></div>
+            <button class="btn btn-action" id="btn-run-sec-scan">Run Security Scan</button>
+          </div>
+          <div class="panel-body">
+            <div class="gauge-container" id="sec-gauge">
+              <svg class="gauge-svg" width="100" height="100">
+                <circle class="gauge-bg" cx="55" cy="55" r="45"></circle>
+                <circle class="gauge-progress" cx="55" cy="55" r="45"></circle>
+              </svg>
+              <div class="gauge-text">
+                <div class="gauge-score">92</div>
+                <div class="gauge-label">Security Score</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: DATABASE -->
+      <div id="tab-database" class="tab-section" style="display: none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span>Database Performance Center</span></div>
+          </div>
+          <div class="panel-body">
+            <p>Database analysis and indexing recommendations.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: DEPLOYMENT -->
+      <div id="tab-deployment" class="tab-section" style="display: none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span>Deployment Readiness Report</span></div>
+          </div>
+          <div class="panel-body">
+            <p>Full 7-pillar deployment verification analysis report.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- AI Explanation Modal -->
+  <div class="modal-overlay" id="explain-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span>💡 AI Root Cause Explanation</span>
+        </h3>
+        <span class="badge badge-low">Confidence: 94%</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+        <div>
+          <strong style="color: #58a6ff;">Why is this a problem?</strong>
+          <p style="color: var(--text-muted); margin-top: 4px;">
+            The function <code>get_user(user_id)</code> can return <code>None</code> when the database lookup fails or the user ID does not exist.
+          </p>
+        </div>
+
+        <div>
+          <strong style="color: #ff7b72;">Why does it matter?</strong>
+          <p style="color: var(--text-muted); margin-top: 4px;">
+            Accessing <code>user.name</code> on a <code>NoneType</code> object triggers an unhandled <code>AttributeError</code>, crashing the process and causing HTTP 500 server errors for end users.
+          </p>
+        </div>
+
+        <div>
+          <strong style="color: #7ee787;">Recommended approach:</strong>
+          <p style="color: var(--text-muted); margin-top: 4px;">
+            Add a null-check guard <code>if user:</code> before accessing any attributes, or supply a default user object.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" id="btn-close-modal">Close</button>
+        <button class="btn btn-action" onclick="document.getElementById('explain-modal').style.display='none'; document.getElementById('btn-quick-fix').click();">Apply Recommendation</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

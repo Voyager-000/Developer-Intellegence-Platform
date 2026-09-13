@@ -1,19 +1,14 @@
 {
-  "version": 2,
-  "installCommand": "cd frontend && npm install",
-  "buildCommand": "cd frontend && npm run build",
-  "outputDirectory": "frontend/dist",
-  "framework": null,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/webview", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd frontend && npm install && npm run build && rm -rf ../public && mkdir -p ../public && cp -r dist/. ../public/",
   "functions": {
-    "api/index.py": {
-      "runtime": "@vercel/python@4.5.0",
-      "maxDuration": 60
+    "index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{tests/**,demo-projects/**,sample-project/**,extension/**,frontend/node_modules/**,frontend/src/**,.pytest_cache/**}"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/webview", "destination": "/index.html" }
+  ]
 }
