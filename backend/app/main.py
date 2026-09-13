@@ -88,6 +88,14 @@ webview_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."
 if os.path.exists(os.path.join(react_dist, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="react-assets")
 
+for images_dir in (
+    os.path.join(react_dist, "images"),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "images")),
+):
+    if os.path.exists(images_dir):
+        app.mount("/images", StaticFiles(directory=images_dir), name="hero-images")
+        break
+
 if os.path.exists(webview_dir):
     app.mount("/static", StaticFiles(directory=webview_dir), name="static")
     @app.get("/webview")

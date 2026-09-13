@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import codeEditor3d from "../../assets/trail/code-editor-3d.jpeg";
+import ironmanGraffiti from "../../assets/trail/ironman-graffiti.jpeg";
+import ninjaCoder from "../../assets/trail/ninja-coder.jpeg";
+import spidermanNewspaper from "../../assets/trail/spiderman-newspaper.jpeg";
+import steampunkClockwork from "../../assets/trail/steampunk-clockwork.jpeg";
+import ironmanStark from "../../assets/trail/ironman-stark.jpeg";
+import scifiHud from "../../assets/trail/scifi-hud.jpeg";
+import spidermanComic from "../../assets/trail/spiderman-comic.jpeg";
 
 interface TrailImage {
   id: number;
@@ -10,16 +18,15 @@ interface TrailImage {
   src: string;
 }
 
-// Custom curated imagery for the Hover.dev Image Trail
 const HERO_IMAGES = [
-  "/images/trail/code-editor-3d.jpeg",       // 3D code editor illustration (landscape)
-  "/images/trail/ironman-graffiti.jpeg",      // Iron Man graffiti on brick wall (dark, dramatic)
-  "/images/trail/ninja-coder.jpeg",           // Ninja coder chibi (square, teal)
-  "/images/trail/spiderman-newspaper.jpeg",   // Spider-Man newspaper typography art
-  "/images/trail/steampunk-clockwork.jpeg",   // Steampunk clockwork portrait (gold/sepia)
-  "/images/trail/ironman-stark.jpeg",         // Tony Stark detailed illustration
-  "/images/trail/scifi-hud.jpeg",             // Sci-fi HUD command dashboard
-  "/images/trail/spiderman-comic.jpeg",       // Spider-Man comic book collage
+  codeEditor3d,
+  ironmanGraffiti,
+  ninjaCoder,
+  spidermanNewspaper,
+  steampunkClockwork,
+  ironmanStark,
+  scifiHud,
+  spidermanComic,
 ];
 
 interface ImageTrailHeroProps {
