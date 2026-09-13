@@ -191,7 +191,18 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 );
 PasswordInput.displayName = "PasswordInput";
 
-const DEFAULT_GOOGLE_CLIENT_ID = "389234028947-5i1bk45s64kid96h3mmsmlb7tdkaoelf.apps.googleusercontent.com";
+const DEFAULT_GOOGLE_CLIENT_ID = "960845547654-3omag1afm79ofahungh4d5djc0j4kl3k.apps.googleusercontent.com";
+const LEGACY_GOOGLE_CLIENT_IDS = new Set([
+  "389234028947-5i1bk45s64kid96h3mmsmlb7tdkaoelf.apps.googleusercontent.com",
+]);
+
+function resolveGoogleClientId(): string {
+  const stored = typeof window !== "undefined" ? localStorage.getItem("dev_intel_google_client_id") : null;
+  if (stored && !LEGACY_GOOGLE_CLIENT_IDS.has(stored)) {
+    return stored;
+  }
+  return import.meta.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
+}
 
 interface GoogleOAuthModalProps {
   isOpen: boolean;
@@ -202,9 +213,7 @@ interface GoogleOAuthModalProps {
 
 function GoogleOAuthModal({ isOpen, onClose, onSimulateGoogleLogin, onConnectClientId }: GoogleOAuthModalProps) {
   const [customEmail, setCustomEmail] = useState("developer.google@gmail.com");
-  const [clientIdInput, setClientIdInput] = useState(() => {
-    return localStorage.getItem("dev_intel_google_client_id") || import.meta.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
-  });
+  const [clientIdInput, setClientIdInput] = useState(() => resolveGoogleClientId());
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -739,7 +748,7 @@ export function AuthUI({ onLoginSuccess }: AuthUIProps) {
 
   // Primary Google Login Handler: Launches official Google OAuth popup
   const handleGoogleButtonClick = async () => {
-    const activeClientId = localStorage.getItem("dev_intel_google_client_id") || import.meta.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
+    const activeClientId = resolveGoogleClientId();
 
     setStatusMsg({ type: "info", text: "Opening Google Sign-In..." });
     await ensureGoogleLoaded();
