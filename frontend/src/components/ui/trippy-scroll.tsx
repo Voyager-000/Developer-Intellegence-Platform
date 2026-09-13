@@ -111,11 +111,32 @@ export default function TrippyScroll({
           </div>
         </div>
 
-        {/* Center Portal Banner: ONLY appears when 100% traversed */}
+        {/* Center copy: always visible so the tunnel reads as a designed sequence */}
         <div className="relative z-20 flex-1 flex items-center justify-center pointer-events-none px-4">
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
+            {!is100Percent && (
+              <motion.div
+                key="vortex-intro"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="relative pointer-events-none max-w-lg w-full text-center"
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-[10px] font-mono uppercase tracking-[0.2em] text-white mb-4">
+                  <Compass className="w-3.5 h-3.5" />
+                  Ingestion Vortex
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_0_24px_rgba(0,0,0,0.9)]">
+                  Traverse the Tunnel
+                </h2>
+                <p className="mt-3 text-sm text-zinc-200 font-mono leading-relaxed drop-shadow-[0_0_16px_rgba(0,0,0,0.9)]">
+                  Scroll through the monochrome singularity to align the 5-stage orbital pipeline.
+                </p>
+              </motion.div>
+            )}
             {is100Percent && (
               <motion.div
+                key="vortex-complete"
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}

@@ -36,7 +36,7 @@ export function FolderAnalysisPage({
   isAuthenticated = false,
   onRequireAuth,
 }: FolderAnalysisPageProps) {
-  const [isWheelOpen, setIsWheelOpen] = useState(true);
+  const [isWheelOpen, setIsWheelOpen] = useState(false);
   const [isNodeDragOver, setIsNodeDragOver] = useState(false);
   const [isPageDragOver, setIsPageDragOver] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
