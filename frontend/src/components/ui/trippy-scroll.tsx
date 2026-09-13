@@ -99,6 +99,15 @@ export default function TrippyScroll({
                 Back to Home
               </FlowHoverButton>
             )}
+            {onOpenWheel && (
+              <FlowHoverButton
+                onClick={onOpenWheel}
+                className="h-8 px-3 text-xs border-white bg-white text-black before:bg-zinc-950 hover:text-white"
+                icon={<Sparkles className="w-3.5 h-3.5" />}
+              >
+                Skip to Pipeline
+              </FlowHoverButton>
+            )}
           </div>
         </div>
 
