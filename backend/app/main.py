@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -105,12 +106,20 @@ if os.path.exists(webview_dir):
     def serve_dashboard():
         return FileResponse(os.path.join(webview_dir, "index.html"))
 
-# On Vercel the built frontend is served from public/. Keep this route for local uvicorn only.
-if os.getenv("VERCEL") != "1":
-    @app.get("/")
-    def serve_root():
-        if os.path.exists(os.path.join(react_dist, "index.html")):
-            return FileResponse(os.path.join(react_dist, "index.html"))
-        elif os.path.exists(os.path.join(webview_dir, "index.html")):
-            return FileResponse(os.path.join(webview_dir, "index.html"))
-        return {"message": "Developer Intelligence API Running"}
+def _frontend_index() -> Optional[str]:
+    for candidate in (
+        os.path.join(react_dist, "index.html"),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "public", "index.html")),
+        os.path.join(webview_dir, "index.html") if os.path.exists(webview_dir) else "",
+    ):
+        if candidate and os.path.exists(candidate):
+            return candidate
+    return None
+
+
+@app.get("/")
+def serve_root():
+    index_path = _frontend_index()
+    if index_path:
+        return FileResponse(index_path)
+    return {"message": "Developer Intelligence API Running"}
