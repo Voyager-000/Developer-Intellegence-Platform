@@ -10,5 +10,14 @@
   "rewrites": [
     { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/webview", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" }
+      ]
+    }
   ]
 }

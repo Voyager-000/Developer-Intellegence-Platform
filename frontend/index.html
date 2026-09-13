@@ -23,14 +23,6 @@
         <p>Loading workspace…</p>
       </div>
     </div>
-    <script>
-      window.addEventListener("error", function () {
-        var boot = document.getElementById("boot");
-        if (boot) {
-          boot.innerHTML = "<h1>Developer Intelligence</h1><p>The workspace failed to load. Refresh the page, or press Ctrl+Shift+R to bypass cache.</p>";
-        }
-      });
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
