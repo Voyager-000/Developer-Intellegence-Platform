@@ -1,0 +1,1336 @@
+SECURITY & PRIVACY SPECIFICATIONS
+
+Developer Intelligence Extension
+
+1. Security & Privacy Overview
+
+The Developer Intelligence Extension handles highly sensitive development information including source code, database queries, application configurations, dependency metadata, security findings, deployment configurations, and potentially secrets.
+
+Therefore, security and privacy are fundamental system requirements rather than optional features.
+
+The system follows these principles:
+
+- Privacy by Design
+- Security by Default
+- Least Privilege
+- Zero Trust
+- Data Minimization
+- Explicit Developer Approval
+- Secure AI Processing
+- Defense in Depth
+- Auditability
+- Secure Failure
+
+Security workflow:
+
+COLLECT MINIMUM DATA
+↓
+CLASSIFY DATA
+↓
+REDACT SENSITIVE INFORMATION
+↓
+AUTHENTICATE + AUTHORIZE
+↓
+ANALYZE
+↓
+ISOLATE AI-GENERATED CODE
+↓
+VALIDATE
+↓
+AUDIT
+↓
+SECURELY DELETE TEMPORARY DATA
+
+2. Security Objectives
+
+The system must protect:
+
+1. Source code
+2. Repository metadata
+3. Database information
+4. Credentials and secrets
+5. API keys
+6. Authentication tokens
+7. Deployment configurations
+8. AI prompts and responses
+9. Security findings
+10. User and project information
+11. Generated patches
+12. Analysis history
+13. Deployment validation results
+
+Primary security objectives:
+
+- Prevent unauthorized access.
+- Prevent source-code leakage.
+- Prevent secret exposure.
+- Prevent malicious code execution.
+- Prevent unauthorized modifications.
+- Protect AI requests and responses.
+- Secure third-party integrations.
+- Maintain analysis integrity.
+- Maintain complete auditability.
+
+3. Security Architecture
+
+The system should use a layered security architecture.
+
+                DEVELOPER
+                    |
+                    v
+            IDE EXTENSION
+                    |
+              TLS / HTTPS
+                    |
+                    v
+            API GATEWAY
+                    |
+      +-------------+-------------+
+      |             |             |
+      v             v             v
+   AUTH          RATE LIMIT     WAF
+      |
+      v
+  AUTHORIZATION
+      |
+      v
+   BACKEND
+      |
+
++------+------+------+
+|      |      |      |
+v      v      v      v
+CODE     DB   SECURITY DEPLOYMENT
+ENGINE ENGINE   ENGINE   ENGINE
+|      |      |      |
++------+------+------+
+|
+v
+AI GATEWAY
+|
++----+----+
+|         |
+v         v
+LOCAL     EXTERNAL
+MODEL      MODEL
+|
+v
+VALIDATION
+|
+v
+SANDBOX
+|
+v
+DEVELOPER APPROVAL
+|
+v
+APPLY
+
+4. Threat Model
+
+The system should be designed against the following threat categories.
+
+4.1 Malicious User
+
+Possible attacks:
+
+- Unauthorized project access
+- Credential theft
+- API abuse
+- Malicious repository upload
+- Manipulated analysis requests
+
+Mitigation:
+
+- Strong authentication
+- Authorization checks
+- Rate limiting
+- Input validation
+- Project-level access control
+- Audit logs
+
+4.2 Malicious Repository
+
+A repository itself may contain malicious code or configurations.
+
+Risks:
+
+- Malicious scripts
+- Command execution
+- Dependency attacks
+- Prompt injection inside source files
+- Malicious build instructions
+
+Mitigation:
+
+- Never execute repository code directly on the host
+- Isolated sandbox execution
+- Restricted network
+- Resource limits
+- Read-only source mount where possible
+- Disposable analysis environments
+
+4.3 Compromised Dependency
+
+Dependencies may contain vulnerabilities or malicious code.
+
+Mitigation:
+
+- Dependency scanning
+- Version verification
+- Vulnerability database checks
+- Lockfile analysis
+- SBOM generation where supported
+- Dependency provenance checks
+
+4.4 AI Prompt Injection
+
+Repository files, comments, documentation, issue descriptions, or configuration files may contain instructions designed to manipulate the AI.
+
+Example:
+
+A source file contains text instructing the AI to ignore its security constraints.
+
+The system must treat repository content as untrusted data rather than trusted instructions.
+
+OWASP identifies prompt injection as a major GenAI application risk.
+
+Mitigation:
+
+- Separate system instructions from repository content.
+- Clearly mark retrieved content as untrusted.
+- Never allow repository text to override system policy.
+- Validate tool requests.
+- Restrict AI capabilities.
+- Require authorization before external actions.
+
+5. Zero-Trust Architecture
+
+Every request must be authenticated and authorized.
+
+The system should not assume that:
+
+- A user is trusted because they are logged in.
+- A repository is trusted because it belongs to a project.
+- AI output is trusted because it came from a model.
+- A dependency is trusted because it is popular.
+- A deployment configuration is safe because it passed one check.
+
+Every sensitive action should be independently validated.
+
+6. Authentication
+
+Recommended authentication:
+
+- OAuth 2.0 / OpenID Connect
+- Secure session management
+- Short-lived access tokens
+- Rotating refresh tokens
+
+Authentication requirements:
+
+- Passwords should never be stored in plaintext.
+- Password-based authentication, if supported, should use a strong password hashing algorithm.
+- Tokens should have limited lifetime.
+- Refresh tokens should support rotation and revocation.
+- Authentication failures should be rate-limited.
+
+7. Authorization
+
+Authorization should operate at multiple levels.
+
+User Level
+
+Determines what the user can access.
+
+Organization Level
+
+Determines organization membership and roles.
+
+Project Level
+
+Determines access to specific repositories and analysis results.
+
+Action Level
+
+Determines whether the user may:
+
+- View findings
+- Generate fixes
+- Apply fixes
+- Modify database recommendations
+- Run security scans
+- Validate deployment
+- Manage integrations
+
+Recommended roles:
+
+ADMIN
+DEVELOPER
+VIEWER
+
+8. Least Privilege
+
+Every component should receive only the permissions it actually needs.
+
+Examples:
+
+- AI service does not receive unrestricted repository access.
+- Analysis worker does not receive production database write permissions.
+- Security scanner does not receive deployment credentials.
+- Database optimizer should operate with read-only permissions during analysis.
+- Deployment validation should use temporary scoped credentials where possible.
+
+9. Source Code Privacy
+
+Source code is highly sensitive.
+
+Default behavior:
+
+- Analyze locally whenever technically possible.
+- Send only the required code context to backend/AI services.
+- Do not upload complete repositories by default.
+- Avoid permanent storage of source code.
+- Store metadata, hashes, findings, and references where possible.
+- Allow users to disable external AI processing.
+
+Preferred architecture:
+
+LOCAL ANALYSIS
+↓
+RELEVANT CONTEXT
+↓
+SECRET REDACTION
+↓
+AI PROCESSING
+↓
+TEMPORARY RESPONSE
+↓
+SECURE DELETION
+
+10. Data Classification
+
+The system should classify information into four levels.
+
+PUBLIC
+
+Examples:
+
+- Public documentation
+- Public package metadata
+
+Protection:
+Normal access controls
+
+INTERNAL
+
+Examples:
+
+- Non-sensitive project metadata
+- Internal reports
+
+Protection:
+Authenticated access
+
+CONFIDENTIAL
+
+Examples:
+
+- Source code
+- Architecture
+- Database schemas
+- Security findings
+
+Protection:
+Strong authorization + encryption
+
+SECRET
+
+Examples:
+
+- API keys
+- Passwords
+- Access tokens
+- Private credentials
+- Deployment secrets
+
+Protection:
+Never expose to AI unnecessarily and never store in ordinary application tables.
+
+11. Secret Detection and Protection
+
+The extension should automatically detect:
+
+- API keys
+- Access tokens
+- Passwords
+- Private keys
+- Database credentials
+- Cloud credentials
+- OAuth secrets
+
+Detection techniques:
+
+- Pattern matching
+- Entropy analysis
+- Secret scanners
+- Provider-specific detection rules
+
+Workflow:
+
+SOURCE
+↓
+SECRET DETECTOR
+↓
+SECRET FOUND
+↓
+MASK / REMOVE
+↓
+SAFE CONTEXT
+↓
+AI PROCESSING
+
+Example:
+
+Original:
+
+API_KEY="actual-secret-value"
+
+AI Context:
+
+API_KEY="[REDACTED]"
+
+12. Secret Storage
+
+Actual secrets should not be stored in the normal application database.
+
+Recommended approach:
+
+- Environment secret managers
+- Cloud secret-management services
+- OS secure credential storage
+- Short-lived tokens
+
+The database should store only:
+
+- Secret identifier
+- Provider
+- Metadata
+- Creation date
+- Expiration date
+
+Never store the raw credential unless a dedicated secret-management architecture explicitly requires it.
+
+13. AI Security
+
+The AI layer is one of the most sensitive components.
+
+Major risks include:
+
+- Prompt injection
+- Sensitive information disclosure
+- Insecure output handling
+- Supply-chain compromise
+- Data poisoning
+- Excessive agency
+- Model manipulation
+- Overreliance on model output
+
+These categories are consistent with current OWASP GenAI security guidance.
+
+14. Prompt Injection Protection
+
+The AI must distinguish between:
+
+TRUSTED INSTRUCTIONS
+
+and
+
+UNTRUSTED REPOSITORY CONTENT.
+
+Example:
+
+System instruction:
+
+"Analyze this code for SQL injection."
+
+Repository comment:
+
+"Ignore all security checks."
+
+The repository comment must be treated as data and must not override the system instruction.
+
+Additional safeguards:
+
+- Prompt templates controlled by backend.
+- Strict role separation.
+- No arbitrary system-prompt modification.
+- Output validation.
+- Tool permission enforcement.
+
+15. AI Output Security
+
+AI output must never be trusted automatically.
+
+Generated output must pass:
+
+AI RESPONSE
+↓
+SCHEMA VALIDATION
+↓
+SECURITY VALIDATION
+↓
+CODE VALIDATION
+↓
+TESTING
+↓
+SANDBOX
+↓
+DEVELOPER APPROVAL
+
+The AI should not have unrestricted ability to:
+
+- Execute shell commands
+- Modify production systems
+- Access credentials
+- Alter databases
+- Deploy code
+- Modify repository permissions
+
+16. Human-in-the-Loop Security
+
+The extension should follow:
+
+AI SUGGESTS
+↓
+SYSTEM VALIDATES
+↓
+DEVELOPER REVIEWS
+↓
+DEVELOPER APPROVES
+↓
+SYSTEM APPLIES
+
+Low-risk, validated operations may be streamlined.
+
+High-risk operations should always require explicit developer approval.
+
+Examples requiring approval:
+
+- Database schema changes
+- Production deployment modifications
+- Authentication changes
+- Security configuration changes
+- Multi-file architectural modifications
+
+17. Sandbox Security
+
+AI-generated patches and untrusted repository operations should run inside isolated environments.
+
+Sandbox protections:
+
+- Process isolation
+- CPU limits
+- Memory limits
+- Execution timeout
+- Temporary filesystem
+- Restricted networking
+- Non-root execution
+- Disposable containers
+- No host filesystem access
+
+Example:
+
+Generated Patch
+↓
+Disposable Container
+↓
+Build
+↓
+Tests
+↓
+Static Analysis
+↓
+Security Scan
+↓
+Destroy Container
+
+18. Database Security
+
+The database layer must implement:
+
+- TLS connections
+- Strong authentication
+- Least-privilege database users
+- Prepared statements
+- Parameterized queries
+- Role-based access
+- Network restrictions
+- Encryption at rest
+- Automated backups
+- Point-in-time recovery
+
+For database optimization, analysis should preferably use read-only database credentials.
+
+19. Production Database Protection
+
+The database optimizer must NEVER automatically modify production schemas.
+
+Recommended workflow:
+
+Analyze
+→ Recommend
+→ Explain
+→ Benchmark
+→ Generate Migration
+→ Developer Review
+→ Approval
+→ Migration System
+
+The extension should distinguish clearly between:
+
+READ-ONLY ANALYSIS
+
+and
+
+WRITE OPERATIONS.
+
+20. Deployment Security
+
+The deployment validation system should check:
+
+- Security configuration
+- Environment variables
+- Exposed secrets
+- Dependency vulnerabilities
+- Container configuration
+- Network configuration
+- Authentication configuration
+- Authorization configuration
+- TLS configuration
+- Debug mode
+- Logging configuration
+- Infrastructure-as-Code configuration
+
+21. Container Security
+
+For containerized projects, check:
+
+- Running as non-root
+- Minimal base image
+- Vulnerable packages
+- Exposed ports
+- Unnecessary capabilities
+- Secrets in image layers
+- Unsafe filesystem permissions
+- Outdated base images
+
+The scanner should produce:
+
+PASS
+WARNING
+FAIL
+
+22. CI/CD Security
+
+The extension should inspect CI/CD pipelines for:
+
+- Hard-coded credentials
+- Unsafe scripts
+- Excessive permissions
+- Untrusted dependency downloads
+- Unsigned artifacts where signing is required
+- Unsafe pull-request execution
+- Production deployment without required approval
+
+23. API Security
+
+All APIs should use:
+
+- HTTPS
+- Authentication
+- Authorization
+- Input validation
+- Output validation
+- Rate limiting
+- Request size limits
+- Secure error handling
+- Audit logging
+
+Security-sensitive endpoints should have stricter rate limits.
+
+Example:
+
+POST /ai/generate-fix
+POST /security/scan
+POST /deployment/validate
+
+24. API Abuse Prevention
+
+Protection mechanisms:
+
+- Rate limiting
+- Request quotas
+- Maximum payload size
+- Request timeout
+- Token budget
+- Per-project limits
+- Concurrent-job limits
+
+This also reduces model-abuse and denial-of-service risks.
+
+25. Data Encryption
+
+Data in Transit
+
+Use TLS for:
+
+- Extension ↔ backend
+- Backend ↔ database
+- Backend ↔ AI provider
+- Backend ↔ Git provider
+- Backend ↔ object storage
+
+Data at Rest
+
+Encrypt:
+
+- Database
+- Backups
+- Object storage
+- Sensitive analysis artifacts
+
+Encryption keys should be managed separately from application data.
+
+26. Logging Security
+
+Logs must never contain:
+
+- API keys
+- Passwords
+- Access tokens
+- Private keys
+- Full source-code dumps
+- Full AI prompts containing sensitive information
+
+Sensitive fields should be masked.
+
+Example:
+
+token=****************
+
+rather than:
+
+token=actual-secret
+
+27. Audit Logging
+
+Security-sensitive operations should generate audit events.
+
+Examples:
+
+- Login
+- Logout
+- Token refresh
+- Project access
+- Repository connection
+- AI request
+- Fix generation
+- Fix application
+- Database recommendation
+- Security scan
+- Deployment validation
+- Configuration change
+- Permission change
+
+Audit record:
+
+{
+"user_id": "...",
+"project_id": "...",
+"action": "APPLY_FIX",
+"resource": "finding_123",
+"timestamp": "...",
+"status": "SUCCESS"
+}
+
+28. Privacy-Preserving AI Processing
+
+The extension should minimize the amount of data sent to external AI providers.
+
+Instead of:
+
+Entire Repository
+↓
+External AI
+
+Use:
+
+Relevant Function
++
+Required Dependencies
++
+Error Context
++
+Minimal Documentation
+↓
+Secret Redaction
+↓
+External AI
+
+29. Data Retention
+
+Different data categories should have different retention periods.
+
+Example policy:
+
+Temporary source context:
+Deleted after analysis
+
+AI request context:
+Short retention or disabled
+
+Analysis metadata:
+Retained according to project policy
+
+Security findings:
+Retained for project history
+
+Audit logs:
+Longer retention
+
+User account data:
+Retained while account is active and according to applicable policy
+
+Retention periods should be configurable.
+
+30. Data Deletion
+
+Users should be able to request deletion of:
+
+- Projects
+- Analysis history
+- Stored reports
+- Feedback
+- Repository metadata
+- Temporary analysis artifacts
+
+Deletion should remove dependent records where permitted by retention policy.
+
+Object-storage artifacts should also be deleted.
+
+31. Third-Party Integration Security
+
+Potential integrations:
+
+- GitHub
+- GitLab
+- Cloud providers
+- CI/CD platforms
+- AI providers
+
+Security requirements:
+
+- OAuth where available
+- Scoped permissions
+- Short-lived credentials
+- Token encryption
+- Token revocation
+- Integration-specific audit logs
+
+Only required permissions should be requested.
+
+32. Supply-Chain Security
+
+The application itself has a software supply chain.
+
+Security measures:
+
+- Dependency pinning
+- Lockfiles
+- Vulnerability scanning
+- Dependency update monitoring
+- SBOM generation
+- Container image scanning
+- Signed releases where practical
+- CI security checks
+
+Third-party components should be evaluated before inclusion.
+
+33. Security Scanning of the Extension
+
+The project should perform security testing against its own code.
+
+Required checks:
+
+- SAST
+- Dependency scanning
+- Secret scanning
+- DAST where applicable
+- Container scanning
+- API security testing
+- Authentication testing
+- Authorization testing
+- Fuzz testing for parsers
+
+34. Secure Error Handling
+
+Errors returned to users should provide enough information to solve the problem without exposing internal secrets.
+
+Do not expose:
+
+- Database credentials
+- Stack traces containing secrets
+- Internal infrastructure details
+- Service credentials
+- Internal filesystem paths where unnecessary
+
+Instead:
+
+"Analysis service temporarily unavailable."
+
+Detailed information should remain in protected server logs.
+
+35. Availability and Abuse Protection
+
+Security also includes availability.
+
+Controls:
+
+- Request throttling
+- Queue limits
+- Worker limits
+- Execution timeouts
+- Memory limits
+- Circuit breakers
+- Retry limits
+- Health checks
+
+Long-running analyses should use asynchronous job processing.
+
+36. Security Incident Response
+
+The system should support:
+
+DETECT
+→ CONTAIN
+→ INVESTIGATE
+→ RECOVER
+→ REVIEW
+
+Example:
+
+Compromised API credential detected
+→ Revoke credential
+→ Disable affected integration
+→ Audit access logs
+→ Rotate credentials
+→ Investigate affected projects
+→ Restore secure operation
+
+37. Security Severity Model
+
+Security findings should use:
+
+CRITICAL
+HIGH
+MEDIUM
+LOW
+INFO
+
+Example:
+
+CRITICAL:
+Remote code execution
+
+HIGH:
+SQL injection
+
+MEDIUM:
+Weak security configuration
+
+LOW:
+Security hardening recommendation
+
+INFO:
+Security observation
+
+38. Security Scoring
+
+Project security score may consider:
+
+Vulnerability Severity
++
+Number of Findings
++
+Exploitability
++
+Exposure
++
+Fix Availability
++
+Validation Status
+
+Example:
+
+Security Score = 100
+
+No critical vulnerabilities
+No high-risk vulnerabilities
+2 medium findings
+5 low findings
+
+39. Privacy Dashboard
+
+The extension should provide users with visibility into data processing.
+
+Dashboard should show:
+
+- Local analyses
+- External AI requests
+- Data sent to AI
+- Redacted fields
+- Stored analysis data
+- Retention status
+- Connected integrations
+
+Example:
+
+Privacy Status
+
+Source Code:
+Local Analysis
+
+AI Processing:
+Enabled
+
+Secret Redaction:
+Enabled
+
+Repository Upload:
+Disabled
+
+External Provider:
+Configured
+
+40. Privacy Settings
+
+Settings should include:
+
+AI Processing:
+ON / OFF
+
+External AI:
+ALLOW / DISALLOW
+
+Local Analysis:
+ON / OFF
+
+Secret Redaction:
+ON / OFF
+
+Telemetry:
+ON / OFF
+
+Analysis History:
+ON / OFF
+
+Source Retention:
+CONFIGURABLE
+
+Repository Upload:
+DISABLED BY DEFAULT
+
+41. Secure Defaults
+
+Default configuration should prioritize safety.
+
+Recommended defaults:
+
+- HTTPS enabled
+- Secret scanning enabled
+- Secret redaction enabled
+- Repository upload disabled
+- Production DB modification disabled
+- AI-generated code execution sandboxed
+- Human approval enabled
+- Telemetry minimized
+- Sensitive logs disabled
+- Least-privilege credentials enabled
+
+42. Security Testing Strategy
+
+The security testing lifecycle:
+
+Developer Commit
+↓
+Secret Scan
+↓
+SAST
+↓
+Dependency Scan
+↓
+Unit Tests
+↓
+Integration Tests
+↓
+Security Tests
+↓
+Container Scan
+↓
+DAST
+↓
+Deployment Security Validation
+
+43. Security Test Categories
+
+Authentication Testing
+
+Verify:
+
+- Invalid login
+- Token expiration
+- Token revocation
+- Session handling
+- Brute-force protection
+
+Authorization Testing
+
+Verify:
+
+- Cross-project access prevention
+- Role restrictions
+- Unauthorized fix application
+- Unauthorized deployment actions
+
+Input Security Testing
+
+Verify:
+
+- Injection attacks
+- Malformed source code
+- Malicious configuration
+- Oversized requests
+- Malicious repository metadata
+
+AI Security Testing
+
+Verify:
+
+- Prompt injection
+- Data leakage
+- Malicious code generation
+- Tool abuse
+- Unsafe output
+- Context manipulation
+
+Sandbox Testing
+
+Verify:
+
+- Escape attempts
+- Network restrictions
+- CPU limits
+- Memory limits
+- Filesystem isolation
+- Process restrictions
+
+44. Privacy Testing
+
+Test that:
+
+- Secrets are redacted.
+- Sensitive information is not logged.
+- Deleted projects are properly removed.
+- Disabled AI processing actually prevents external AI requests.
+- Repository upload remains disabled by default.
+- Only required context is transmitted.
+- Access to project data is isolated between users.
+
+45. Security Metrics
+
+Key metrics:
+
+Security Finding Detection Rate
+
+False Positive Rate
+
+Secret Detection Rate
+
+Unauthorized Access Attempts
+
+Blocked Requests
+
+AI Prompt Injection Detection Rate
+
+Sensitive Data Leakage Incidents
+
+Sandbox Escape Attempts
+
+Average Vulnerability Resolution Time
+
+Deployment Security Block Rate
+
+46. Security Governance
+
+The security architecture should follow recognized cybersecurity risk-management practices.
+
+The overall security program can be mapped to the NIST Cybersecurity Framework 2.0 functions:
+
+GOVERN
+IDENTIFY
+PROTECT
+DETECT
+RESPOND
+RECOVER
+
+NIST describes CSF 2.0 as a flexible framework for managing cybersecurity risk across organizations.
+
+47. Security-by-Design Principles
+
+The extension should follow these principles:
+
+1. Never trust AI output automatically.
+2. Never trust repository content automatically.
+3. Never execute untrusted code on the host.
+4. Never expose secrets unnecessarily.
+5. Never grant excessive permissions.
+6. Never modify production systems without authorization.
+7. Always validate high-risk operations.
+8. Always maintain an audit trail for sensitive actions.
+9. Minimize data collection.
+10. Fail securely when validation fails.
+
+48. Security Architecture for AI Fixes
+
+    CODE ISSUE
+         ↓
+   AI GENERATES FIX
+         ↓
+   OUTPUT VALIDATOR
+         ↓
+  SECURITY ANALYSIS
+         ↓
+     SANDBOX
+         ↓
+   BUILD + TESTS
+         ↓
+ REGRESSION ANALYSIS
+         ↓
+   CONFIDENCE SCORE
+         ↓
+  RISK CLASSIFICATION
+         ↓
+ DEVELOPER APPROVAL
+         ↓
+      APPLY FIX
+
+49. Security Architecture for Database Optimization
+
+    SQL QUERY
+        ↓
+  READ-ONLY ANALYSIS
+        ↓
+ EXECUTION PLAN
+        ↓
+PERFORMANCE ANALYSIS
+        ↓
+  AI RECOMMENDATION
+        ↓
+    BENCHMARK
+        ↓
+  SECURITY CHECK
+        ↓
+ GENERATE MIGRATION
+        ↓
+DEVELOPER APPROVAL
+        ↓
+    APPLY LATER
+
+50. Security Architecture for Deployment
+
+    DEPLOYMENT REQUEST
+            ↓
+     CONFIG ANALYSIS
+            ↓
+     SECRET SCAN
+            ↓
+   DEPENDENCY SCAN
+            ↓
+    SECURITY SCAN
+            ↓
+   BUILD + TESTS
+            ↓
+  INFRASTRUCTURE CHECK
+            ↓
+     RISK SCORING
+            ↓
+  SECURITY POLICY
+            ↓
+   READY / REVIEW / BLOCKED
+
+51. Final Security & Privacy Architecture
+
+             DEVELOPER
+                 |
+                 v
+           IDE EXTENSION
+                 |
+             TLS / HTTPS
+                 |
+                 v
+            API GATEWAY
+                 |
+        AUTHENTICATION
+                 |
+        AUTHORIZATION
+                 |
+                 v
+           ANALYSIS API
+                 |
+   +-------------+-------------+
+   |             |             |
+  CODE           DB          SECURITY
+   |             |             |
+   +-------------+-------------+
+                 |
+            AI GATEWAY
+                 |
+         SECRET REDACTION
+                 |
+         PROMPT PROTECTION
+                 |
+         MODEL PROCESSING
+                 |
+        OUTPUT VALIDATION
+                 |
+              SANDBOX
+                 |
+       TEST + SECURITY SCAN
+                 |
+         RISK / CONFIDENCE
+                 |
+      DEVELOPER APPROVAL
+                 |
+              APPLY
+                 |
+      DEPLOYMENT VALIDATION
+                 |
+          AUDIT + MONITORING
+
+52. Final Security Objective
+
+The Developer Intelligence Extension should not simply detect security problems in applications.
+
+It should itself be built as a secure development platform.
+
+The complete security philosophy is:
+
+PROTECT THE CODE
+→ PROTECT THE DATA
+→ PROTECT THE AI
+→ PROTECT THE EXECUTION ENVIRONMENT
+→ VALIDATE EVERY HIGH-RISK ACTION
+→ KEEP THE DEVELOPER IN CONTROL
+
+The goal is to make AI-assisted development more intelligent without sacrificing developer control, source-code privacy, or deployment security.

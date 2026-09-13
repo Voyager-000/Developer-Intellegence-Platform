@@ -1,0 +1,1818 @@
+System Architecture
+
+Developer Intelligence Extension
+
+1. Architecture Overview
+
+The Developer Intelligence Extension is designed as an intelligent developer-assistance platform that operates directly inside the developer's IDE. Its architecture combines static code analysis, AI-assisted code correction, database performance analysis, security testing, deployment validation, and an optional learning layer.
+
+The system follows a modular architecture so that each major capability can work independently while sharing a common analysis engine, API layer, security framework, and developer interface.
+
+2. High-Level Architecture
+
+                    ┌───────────────────────────────────┐
+                    │           Developer               │
+                    │                                   │
+                    │   Write Code / Run / Commit /     │
+                    │   Deploy                           │
+                    └─────────────────┬─────────────────┘
+                                      │
+                                      ▼
+                    ┌───────────────────────────────────┐
+                    │        IDE Extension Layer        │
+                    │                                   │
+                    │  • VS Code / JetBrains Extension  │
+                    │  • Code Diagnostics                │
+                    │  • Suggestions                     │
+                    │  • Security Alerts                │
+                    │  • Performance Dashboard           │
+                    └─────────────────┬─────────────────┘
+                                      │
+                                      ▼
+                    ┌───────────────────────────────────┐
+                    │       Extension Controller        │
+                    │                                   │
+                    │  • Event Handler                   │
+                    │  • Request Manager                 │
+                    │  • File/Project Context Manager    │
+                    │  • Result Aggregator               │
+                    └─────────────────┬─────────────────┘
+                                      │
+                         ┌────────────┴────────────┐
+                         │                         │
+                         ▼                         ▼
+              ┌───────────────────┐     ┌────────────────────┐
+              │ Local Analysis    │     │ Cloud Analysis API │
+              │ Engine             │     │                    │
+              │                    │     │ FastAPI / REST     │
+              │ • AST Parser       │     │ Authentication     │
+              │ • Linter           │     │ Request Routing    │
+              │ • Dependency Scan  │     │ Analysis Jobs      │
+              │ • Pattern Engine   │     │                   │
+              └─────────┬─────────┘     └──────────┬─────────┘
+                        │                           │
+                        └────────────┬──────────────┘
+                                     ▼
+                    ┌───────────────────────────────────┐
+                    │        Intelligence Engine        │
+                    │                                   │
+                    │  ┌─────────────────────────────┐  │
+                    │  │ Code Intelligence Engine    │  │
+                    │  ├─────────────────────────────┤  │
+                    │  │ Self-Correction Engine      │  │
+                    │  ├─────────────────────────────┤  │
+                    │  │ DB Optimization Engine       │  │
+                    │  ├─────────────────────────────┤  │
+                    │  │ Security Analysis Engine     │  │
+                    │  ├─────────────────────────────┤  │
+                    │  │ Deployment Validation Engine │  │
+                    │  └─────────────────────────────┘  │
+                    └─────────────────┬─────────────────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    │                 │                 │
+                    ▼                 ▼                 ▼
+             ┌────────────┐   ┌──────────────┐   ┌───────────────┐
+             │ AI / ML     │   │ Rules Engine │   │ Knowledge Base│
+             │ Layer       │   │              │   │               │
+             │             │   │ Security     │   │ Error Patterns│
+             │ LLM         │   │ Performance  │   │ Fix Patterns  │
+             │ Embeddings  │   │ Best         │   │ DB Patterns   │
+             │ Classifier  │   │ Practices    │   │ Security CVEs │
+             └──────┬─────┘   └──────┬───────┘   └───────┬───────┘
+                    │                 │                   │
+                    └─────────────────┼───────────────────┘
+                                      ▼
+                    ┌───────────────────────────────────┐
+                    │        Validation & Ranking        │
+                    │                                   │
+                    │ • Confidence Scoring              │
+                    │ • Risk Classification             │
+                    │ • Fix Verification                │
+                    │ • Performance Estimation          │
+                    │ • Security Severity               │
+                    └─────────────────┬─────────────────┘
+                                      │
+                                      ▼
+                    ┌───────────────────────────────────┐
+                    │       Response / Recommendation   │
+                    │                                   │
+                    │ • Error                         │
+                    │ • Root Cause                     │
+                    │ • Suggested Fix                  │
+                    │ • Optimized Query                │
+                    │ • Security Finding               │
+                    │ • Deployment Recommendation      │
+                    └─────────────────┬─────────────────┘
+                                      │
+                                      ▼
+                    ┌───────────────────────────────────┐
+                    │         Developer Interface       │
+                    │                                   │
+                    │ Inline Diagnostics                 │
+                    │ Quick Fix                          │
+                    │ Optimization Suggestions           │
+                    │ Security Report                    │
+                    │ Deployment Score                   │
+                    └───────────────────────────────────┘
+
+---
+
+3. Architectural Layers
+
+The entire system is divided into eight major architectural layers.
+
+Layer 1 — Developer Environment
+
+This is where the user interacts with the system.
+
+Supported environments can include:
+
+- Visual Studio Code
+- JetBrains IDEs
+- Other IDEs through a language-server-based integration
+
+The developer writes code, executes it, commits changes, runs tests, and prepares deployments.
+
+The extension continuously observes relevant development events and invokes the appropriate intelligence modules.
+
+---
+
+4. IDE Extension Layer
+
+The IDE extension acts as the primary client of the platform.
+
+Major Components
+
+IDE Extension
+│
+├── Extension Manager
+│
+├── Code Listener
+│
+├── Diagnostic Provider
+│
+├── Quick Fix Provider
+│
+├── Code Action Provider
+│
+├── Project Scanner
+│
+├── Dependency Scanner
+│
+├── Terminal Monitor
+│
+├── Git Integration
+│
+├── Deployment Monitor
+│
+└── Dashboard / Webview UI
+
+Responsibilities
+
+The extension is responsible for:
+
+1. Detecting code changes.
+2. Collecting the necessary context.
+3. Sending analysis requests.
+4. Displaying errors and recommendations.
+5. Applying approved fixes.
+6. Showing database optimization suggestions.
+7. Displaying security findings.
+8. Triggering deployment validation.
+9. Collecting user feedback on recommendations.
+
+The extension should avoid sending the entire project unnecessarily. It should send the smallest relevant context required for an analysis request.
+
+---
+
+5. Extension Controller
+
+The Extension Controller is the central coordinator inside the IDE.
+
+Components
+
+Event Handler
+
+Detects events such as:
+
+File Opened
+      ↓
+File Modified
+      ↓
+File Saved
+      ↓
+Code Executed
+      ↓
+Test Failed
+      ↓
+Git Commit
+      ↓
+Deployment Triggered
+
+Each event is mapped to an appropriate analysis workflow.
+
+Context Manager
+
+Collects:
+
+- Current file
+- Relevant code block
+- Imports
+- Function/class context
+- Related files
+- Error messages
+- Stack traces
+- Git diff
+- Dependency information
+- Configuration files
+
+Request Manager
+
+Controls communication between the extension and backend services.
+
+It performs:
+
+- Request creation
+- Authentication
+- Retry handling
+- Timeout handling
+- Response parsing
+- Caching
+
+Result Aggregator
+
+Combines results from multiple analysis engines into one unified result.
+
+---
+
+6. Local Static Analysis Engine
+
+A significant amount of analysis should happen locally to reduce latency and protect source code.
+
+Source Code
+    │
+    ▼
+Parser
+    │
+    ▼
+AST
+    │
+    ├── Syntax Analysis
+    ├── Type Analysis
+    ├── Complexity Analysis
+    ├── Pattern Detection
+    └── Dependency Analysis
+
+Components
+
+AST Parser
+
+Converts source code into an Abstract Syntax Tree.
+
+The AST allows the system to understand code structure rather than treating it as plain text.
+
+Static Analyzer
+
+Detects:
+
+- Syntax problems
+- Unused variables
+- Potential bugs
+- Dangerous patterns
+- Complex functions
+- Duplicate code
+- Poor coding patterns
+
+Dependency Analyzer
+
+Analyzes:
+
+- Package dependencies
+- Dependency versions
+- Outdated libraries
+- Known vulnerabilities
+- Unnecessary dependencies
+
+Complexity Analyzer
+
+Calculates metrics such as:
+
+- Cyclomatic complexity
+- Function size
+- Nesting depth
+- Dependency depth
+- Potential hotspots
+
+---
+
+7. Backend API Layer
+
+The backend provides centralized intelligence services.
+
+A REST-based API can be implemented using FastAPI.
+
+IDE Extension
+      │
+      │ HTTPS
+      ▼
+API Gateway
+      │
+      ├── Authentication
+      ├── Rate Limiting
+      ├── Request Validation
+      └── Routing
+             │
+             ▼
+       Intelligence Services
+
+Example API Structure
+
+/api/v1
+│
+├── /analyze
+│
+├── /fix
+│
+├── /optimize/database
+│
+├── /security/scan
+│
+├── /deployment/validate
+│
+├── /project
+│
+├── /feedback
+│
+└── /health
+
+Example
+
+POST /api/v1/analyze
+
+Request:
+
+{
+  "language": "python",
+  "file": "app.py",
+  "code": "...",
+  "error": "...",
+  "context": {}
+}
+
+Response:
+
+{
+  "issue": "Potential null reference",
+  "severity": "high",
+  "confidence": 0.94,
+  "explanation": "...",
+  "suggested_fix": "...",
+  "validation_required": true
+}
+
+---
+
+8. Intelligence Engine
+
+The Intelligence Engine is the core of the platform.
+
+It contains five major engines.
+
+                 Intelligence Engine
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+        ▼                ▼                ▼
+  Code Intelligence  DB Optimization  Security Engine
+        │                │                │
+        └──────────┬─────┴─────┬──────────┘
+                   │           │
+                   ▼           ▼
+          Deployment Engine   AI Engine
+
+---
+
+9. Self-Correcting Code Engine
+
+The Self-Correcting Code Engine detects problems and generates candidate corrections.
+
+Pipeline
+
+Code
+ │
+ ▼
+Error Detection
+ │
+ ▼
+Error Classification
+ │
+ ▼
+Root Cause Analysis
+ │
+ ▼
+Candidate Fix Generation
+ │
+ ▼
+Rule-Based Validation
+ │
+ ▼
+Test / Compile / Lint
+ │
+ ▼
+Confidence Scoring
+ │
+ ▼
+Recommended Fix
+
+Error Sources
+
+The engine can receive issues from:
+
+- Compiler
+- Runtime
+- Linter
+- Unit tests
+- Static analysis
+- Security scanner
+- Developer feedback
+
+Fix Generation
+
+The system generates one or more candidate fixes.
+
+Each fix receives:
+
+Fix Candidate
+│
+├── Correctness Score
+├── Security Score
+├── Regression Risk
+├── Confidence
+└── Explanation
+
+Self-Correction Principle
+
+The system should not blindly modify code.
+
+Instead:
+
+Detect
+  ↓
+Understand
+  ↓
+Generate
+  ↓
+Validate
+  ↓
+Rank
+  ↓
+Suggest
+  ↓
+Developer Approval
+
+For high-risk changes, explicit developer approval is required.
+
+---
+
+10. Database Performance Optimization Engine
+
+This engine analyzes SQL queries, ORM operations, schemas, and database access patterns.
+
+Input
+
+SQL Query
+   +
+Schema
+   +
+Indexes
+   +
+Query Statistics
+   +
+ORM Code
+
+Processing
+
+Query Parser
+      ↓
+Query Structure Analysis
+      ↓
+Execution Plan Analysis
+      ↓
+Index Analysis
+      ↓
+Schema Analysis
+      ↓
+Performance Estimation
+      ↓
+Optimization Recommendation
+
+Problems Detected
+
+Examples include:
+
+- Missing indexes
+- Unnecessary indexes
+- Full table scans
+- N+1 queries
+- Inefficient joins
+- Excessive nested queries
+- Unnecessary columns
+- Repeated database calls
+- Poor pagination
+- Expensive sorting
+- Inefficient filtering
+
+Output
+
+Database Finding
+│
+├── Query
+├── Problem
+├── Estimated Cost
+├── Root Cause
+├── Recommended Optimization
+├── Example Optimized Query
+└── Expected Improvement
+
+The engine can support major database systems through adapters.
+
+Database Adapter
+│
+├── PostgreSQL
+├── MySQL
+├── SQLite
+└── MongoDB
+
+---
+
+11. Security Analysis Engine
+
+The Security Engine performs security analysis before code reaches production.
+
+Architecture
+
+Project
+ │
+ ├── Source Code
+ ├── Dependencies
+ ├── Configuration
+ ├── Environment Variables
+ ├── Docker Files
+ └── Infrastructure Files
+            │
+            ▼
+       Security Scanner
+            │
+     ┌──────┼───────┐
+     ▼      ▼       ▼
+   SAST   SCA     Secrets
+     │      │       │
+     └──────┼───────┘
+            ▼
+      Risk Assessment
+            │
+            ▼
+      Security Report
+
+SAST
+
+Static Application Security Testing detects insecure code patterns.
+
+Examples:
+
+- SQL injection
+- Command injection
+- Insecure deserialization
+- Unsafe file access
+- Hardcoded credentials
+- Weak authentication logic
+
+SCA
+
+Software Composition Analysis evaluates third-party dependencies.
+
+It identifies:
+
+- Vulnerable packages
+- Outdated dependencies
+- Risky versions
+- Dependency chains
+
+Secret Detection
+
+The extension searches for:
+
+- API keys
+- Tokens
+- Passwords
+- Private keys
+- Cloud credentials
+
+Secrets should never be uploaded to the AI service.
+
+---
+
+12. Deployment Validation Engine
+
+The Deployment Engine validates whether the application is ready for deployment.
+
+Pipeline
+
+Git Commit / CI Trigger
+          │
+          ▼
+Project Discovery
+          │
+          ▼
+Build Validation
+          │
+          ▼
+Test Validation
+          │
+          ▼
+Security Scan
+          │
+          ▼
+Dependency Scan
+          │
+          ▼
+Configuration Validation
+          │
+          ▼
+Infrastructure Validation
+          │
+          ▼
+Performance Checks
+          │
+          ▼
+Deployment Readiness Score
+
+Deployment Score
+
+A unified score can be calculated from:
+
+Deployment Score =
+    Code Quality
+  + Test Reliability
+  + Security
+  + Dependency Health
+  + Configuration
+  + Performance
+
+Example:
+
+Deployment Readiness: 86/100
+
+Security          92
+Code Quality      88
+Dependencies      90
+Tests             81
+Performance       79
+Configuration     94
+
+The extension should clearly identify blocking versus non-blocking issues.
+
+---
+
+13. AI / ML Layer
+
+The AI layer should be hybrid rather than relying completely on a large language model.
+
+                 AI Layer
+                    │
+      ┌─────────────┼──────────────┐
+      │             │              │
+      ▼             ▼              ▼
+     LLM        ML Classifier   Embedding Model
+      │             │              │
+      └─────────────┼──────────────┘
+                    ▼
+             Recommendation
+
+LLM
+
+Used for tasks such as:
+
+- Code explanation
+- Root-cause reasoning
+- Fix generation
+- Query optimization suggestions
+- Security explanation
+- Natural-language recommendations
+
+ML Models
+
+Traditional ML models can classify:
+
+- Error type
+- Severity
+- Bug probability
+- Performance risk
+- Security risk
+- Fix confidence
+
+Embeddings
+
+Embeddings can represent:
+
+- Error messages
+- Code snippets
+- Historical fixes
+- Security patterns
+- Query patterns
+
+This allows semantic retrieval from the knowledge base.
+
+---
+
+14. Rule Engine
+
+The Rule Engine provides deterministic analysis.
+
+This is critical because AI-generated outputs should not be trusted without validation.
+
+Input
+ │
+ ▼
+Rules
+ │
+ ├── Security Rules
+ ├── Coding Rules
+ ├── Database Rules
+ ├── Deployment Rules
+ └── Compliance Rules
+ │
+ ▼
+Deterministic Findings
+
+Examples:
+
+IF hardcoded_secret_detected
+→ Security Severity = Critical
+
+IF SQL_without_parameterization
+→ Security Severity = High
+
+IF query_missing_index
+→ Performance Severity = Medium
+
+The rule engine provides predictable results while the AI layer provides deeper reasoning.
+
+---
+
+15. Knowledge Base
+
+The Knowledge Base stores reusable intelligence.
+
+Data Categories
+
+Knowledge Base
+│
+├── Error Patterns
+├── Fix Patterns
+├── Security Rules
+├── Vulnerability Metadata
+├── Database Optimization Patterns
+├── Deployment Best Practices
+├── Programming Patterns
+└── Historical Developer Feedback
+
+A vector database can optionally be used for semantic retrieval.
+
+Example:
+
+Developer Error
+       │
+       ▼
+Embedding
+       │
+       ▼
+Vector Search
+       │
+       ▼
+Similar Known Problems
+       │
+       ▼
+Relevant Fix Patterns
+
+This reduces unnecessary LLM calls and improves consistency.
+
+---
+
+16. Validation Layer
+
+The Validation Layer is one of the most important components.
+
+AI recommendations must be validated before being presented as safe fixes.
+
+Validation Pipeline
+
+AI Generated Fix
+       │
+       ▼
+Syntax Validation
+       │
+       ▼
+Compilation Check
+       │
+       ▼
+Static Analysis
+       │
+       ▼
+Security Scan
+       │
+       ▼
+Unit Tests
+       │
+       ▼
+Regression Analysis
+       │
+       ▼
+Confidence Score
+
+Decision
+
+High Confidence + Low Risk
+        ↓
+Recommend / Auto-apply option
+
+Medium Confidence
+        ↓
+Show Suggested Fix
+
+Low Confidence / High Risk
+        ↓
+Explain Issue Only
+
+This prevents the system from automatically introducing harmful changes.
+
+---
+
+17. Recommendation and Ranking Engine
+
+When multiple solutions exist, the system ranks them.
+
+Ranking Factors
+
+Final Score =
+    Correctness
+  + Security
+  + Performance
+  + Maintainability
+  + Compatibility
+  + Confidence
+
+The highest-ranked solution is presented first.
+
+Each recommendation should include:
+
+Problem
+↓
+Why it happened
+↓
+Recommended solution
+↓
+Code/query change
+↓
+Expected impact
+↓
+Validation status
+
+---
+
+18. Data Architecture
+
+A hybrid data architecture is recommended.
+
+                Data Layer
+                    │
+      ┌─────────────┼───────────────┐
+      │             │               │
+      ▼             ▼               ▼
+ PostgreSQL     Redis Cache     Vector DB
+      │             │               │
+      │             │               │
+ User/Project    Sessions       Embeddings
+ Findings        Results        Knowledge
+ Feedback        Jobs           Retrieval
+
+PostgreSQL
+
+Stores structured information such as:
+
+Users
+Projects
+Repositories
+Analysis Jobs
+Findings
+Fixes
+Security Reports
+Deployment Reports
+Feedback
+
+Redis
+
+Used for:
+
+- Caching
+- Temporary job state
+- Rate limiting
+- Session information
+- Frequently requested analysis results
+
+Vector Database
+
+Stores embeddings for:
+
+- Similar errors
+- Fix patterns
+- Code patterns
+- Security findings
+- Optimization recommendations
+
+---
+
+19. Core Database Schema
+
+Users
+
+users
+--------------------------------
+id
+email
+name
+created_at
+updated_at
+
+Projects
+
+projects
+--------------------------------
+id
+user_id
+name
+repository
+language
+created_at
+updated_at
+
+Analysis Jobs
+
+analysis_jobs
+--------------------------------
+id
+project_id
+type
+status
+started_at
+completed_at
+
+Findings
+
+findings
+--------------------------------
+id
+analysis_job_id
+category
+severity
+file
+line
+message
+root_cause
+confidence
+status
+
+Fixes
+
+fixes
+--------------------------------
+id
+finding_id
+original_code
+suggested_code
+validation_status
+confidence
+created_at
+
+Security Findings
+
+security_findings
+--------------------------------
+id
+project_id
+type
+severity
+location
+description
+recommendation
+status
+
+Deployment Reports
+
+deployment_reports
+--------------------------------
+id
+project_id
+security_score
+quality_score
+performance_score
+test_score
+overall_score
+created_at
+
+---
+
+20. Communication Architecture
+
+Communication between components should follow clearly defined interfaces.
+
+IDE Extension
+      │
+      │ HTTPS / JSON
+      ▼
+API Gateway
+      │
+      ▼
+Backend Services
+      │
+      ├── Analysis Service
+      ├── AI Service
+      ├── Security Service
+      ├── Database Service
+      └── Deployment Service
+
+For long-running operations:
+
+Extension
+   │
+   ▼
+Create Job
+   │
+   ▼
+Queue
+   │
+   ▼
+Worker
+   │
+   ▼
+Analysis
+   │
+   ▼
+Store Result
+   │
+   ▼
+Extension retrieves result
+
+A message queue such as Redis-based workers, RabbitMQ, or Kafka can be introduced as the scale increases.
+
+---
+
+21. Asynchronous Processing
+
+Not every operation should run synchronously.
+
+Synchronous Operations
+
+Suitable for:
+
+- Syntax checks
+- Small code diagnostics
+- Simple linting
+- Quick recommendations
+
+Asynchronous Operations
+
+Suitable for:
+
+- Full project scans
+- Security scans
+- Dependency analysis
+- Database performance analysis
+- Deployment validation
+- Large repository analysis
+
+Example:
+
+POST /analysis
+      │
+      ▼
+Job ID Returned
+      │
+      ▼
+Background Worker
+      │
+      ▼
+Analysis
+      │
+      ▼
+Database
+      │
+      ▼
+GET /analysis/{job_id}
+
+---
+
+22. Caching Architecture
+
+Caching reduces latency and cloud cost.
+
+Request
+  │
+  ▼
+Cache Lookup
+  │
+  ├── HIT ──────► Return Result
+  │
+  └── MISS
+        │
+        ▼
+     Analyze
+        │
+        ▼
+      Cache
+        │
+        ▼
+      Return
+
+Cache keys can be generated from:
+
+Hash(
+    code +
+    language +
+    dependencies +
+    analyzer_version
+)
+
+Changing the relevant input automatically invalidates the old result.
+
+---
+
+23. Security Architecture
+
+Security must be implemented at every architectural layer.
+
+IDE
+ │
+ │ TLS
+ ▼
+API Gateway
+ │
+ ├── Authentication
+ ├── Authorization
+ ├── Rate Limiting
+ ├── Input Validation
+ └── Audit Logging
+ │
+ ▼
+Backend
+ │
+ ├── Secret Filtering
+ ├── Sandboxed Analysis
+ ├── Secure Storage
+ └── Access Control
+
+Important Security Principles
+
+Source code should be transmitted only when necessary.
+
+Sensitive files such as:
+
+.env
+credentials files
+private keys
+secret configuration
+
+should be filtered or redacted.
+
+AI requests should pass through a sanitization layer.
+
+---
+
+24. Sandboxed Code Execution
+
+Because the platform may need to compile or execute code for validation, execution must occur in isolated environments.
+
+Analysis Request
+      │
+      ▼
+Sandbox Manager
+      │
+      ▼
+Isolated Container
+      │
+      ├── Limited CPU
+      ├── Limited RAM
+      ├── Limited Network
+      ├── Time Limit
+      └── Read-only Base Environment
+      │
+      ▼
+Test / Compile
+      │
+      ▼
+Result
+
+The production backend must never execute arbitrary user code directly on the host machine.
+
+---
+
+25. Deployment Architecture
+
+A cloud deployment can use containerized services.
+
+                  Internet
+                     │
+                     ▼
+               Load Balancer
+                     │
+                     ▼
+                 API Gateway
+                     │
+          ┌──────────┼──────────┐
+          ▼          ▼          ▼
+      API Server   Worker     Security
+          │          │          │
+          └──────────┼──────────┘
+                     │
+          ┌──────────┼───────────┐
+          ▼          ▼           ▼
+      PostgreSQL   Redis      Vector DB
+                     │
+                     ▼
+               Object Storage
+
+Docker should be used to package services consistently.
+
+---
+
+26. CI/CD Architecture
+
+The project itself should follow automated CI/CD.
+
+Developer
+   │
+   ▼
+Git Push
+   │
+   ▼
+CI Pipeline
+   │
+   ├── Lint
+   ├── Unit Tests
+   ├── Integration Tests
+   ├── Security Scan
+   ├── Dependency Scan
+   ├── Build
+   └── Container Scan
+   │
+   ▼
+Deployment
+   │
+   ▼
+Staging
+   │
+   ▼
+Validation
+   │
+   ▼
+Production
+
+The Developer Intelligence Extension can also analyze this pipeline and identify failures.
+
+---
+
+27. End-to-End Self-Correction Workflow
+
+Example workflow:
+
+Developer writes code
+        │
+        ▼
+Extension detects change
+        │
+        ▼
+Local static analysis
+        │
+        ▼
+Problem detected
+        │
+        ▼
+Context extraction
+        │
+        ▼
+Backend request
+        │
+        ▼
+Root Cause Analysis
+        │
+        ▼
+AI generates candidate fixes
+        │
+        ▼
+Rule Engine validation
+        │
+        ▼
+Compile / Test
+        │
+        ▼
+Security validation
+        │
+        ▼
+Confidence calculation
+        │
+        ▼
+Best fix selected
+        │
+        ▼
+Developer sees Quick Fix
+        │
+        ▼
+Developer approves
+        │
+        ▼
+Code updated
+        │
+        ▼
+Re-analysis
+
+This creates the system's closed feedback loop.
+
+---
+
+28. End-to-End Database Optimization Workflow
+
+Developer writes SQL / ORM code
+              │
+              ▼
+Database Query Detection
+              │
+              ▼
+Query Parser
+              │
+              ▼
+Schema Retrieval
+              │
+              ▼
+Execution Plan Analysis
+              │
+              ▼
+Performance Rules
+              │
+              ▼
+AI Optimization Analysis
+              │
+              ▼
+Candidate Optimizations
+              │
+              ▼
+Cost / Performance Estimation
+              │
+              ▼
+Recommended Query / Index
+              │
+              ▼
+Developer Review
+
+---
+
+29. End-to-End Security Workflow
+
+Project Scan
+     │
+     ▼
+Source Code Analysis
+     │
+     ├── SAST
+     ├── Secret Detection
+     ├── Dependency Scan
+     ├── Configuration Scan
+     └── Infrastructure Scan
+             │
+             ▼
+       Finding Aggregator
+             │
+             ▼
+       Risk Classification
+             │
+             ▼
+      AI Explanation
+             │
+             ▼
+      Remediation Advice
+             │
+             ▼
+      Security Dashboard
+
+---
+
+30. End-to-End Deployment Validation Workflow
+
+Deployment Requested
+        │
+        ▼
+Project Snapshot
+        │
+        ▼
+Build Verification
+        │
+        ▼
+Test Verification
+        │
+        ▼
+Dependency Verification
+        │
+        ▼
+Security Verification
+        │
+        ▼
+Configuration Verification
+        │
+        ▼
+Performance Verification
+        │
+        ▼
+Deployment Score
+        │
+        ├── Safe ──────────► Deploy
+        │
+        ├── Warning ───────► Review
+        │
+        └── Critical ─────► Block Deployment
+
+---
+
+31. Observability Architecture
+
+Every service should generate structured logs and metrics.
+
+Application
+     │
+     ├── Logs
+     ├── Metrics
+     └── Traces
+             │
+             ▼
+       Observability
+             │
+      ┌──────┼───────┐
+      ▼      ▼       ▼
+    Logs  Metrics   Traces
+
+Important metrics include:
+
+Analysis latency
+AI response latency
+Fix acceptance rate
+Fix validation success rate
+False positive rate
+Security findings
+Database optimization impact
+Deployment blocking rate
+API errors
+
+---
+
+32. Failure Handling
+
+The architecture should be designed so that an external AI or backend failure does not break the developer's workflow.
+
+Example
+
+AI Service unavailable
+        │
+        ▼
+Fallback to local analyzer
+        │
+        ▼
+Show deterministic findings
+
+Similarly:
+
+Backend unavailable
+        │
+        ▼
+Local diagnostics continue
+        │
+        ▼
+Cloud features temporarily unavailable
+
+This establishes a graceful degradation strategy.
+
+---
+
+33. Scalability Architecture
+
+The architecture should support horizontal scaling.
+
+                  Load Balancer
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+      API Server   API Server   API Server
+          │            │            │
+          └────────────┼────────────┘
+                       ▼
+                    Queue
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+       Worker       Worker       Worker
+
+Heavy workloads can therefore be distributed across multiple workers.
+
+---
+
+34. Recommended Technology Stack
+
+Frontend / Extension
+
+VS Code Extension
+TypeScript
+Webview UI
+HTML/CSS
+
+Backend
+
+Python
+FastAPI
+Pydantic
+Uvicorn
+
+Code Analysis
+
+AST Parsers
+Tree-sitter
+Language-specific linters
+Static analysis tools
+
+AI/ML
+
+Python
+PyTorch / scikit-learn
+LLM API or local model
+Embedding model
+Vector search
+
+Database
+
+PostgreSQL
+Redis
+Vector Database
+
+Security
+
+SAST
+SCA
+Secret Detection
+Dependency Vulnerability Database
+Container Scanning
+
+Infrastructure
+
+Docker
+GitHub Actions
+Cloud deployment
+Reverse Proxy / Load Balancer
+
+---
+
+35. Microservice Structure
+
+The initial hackathon implementation can use a modular monolith, while keeping service boundaries clean.
+
+Recommended logical structure:
+
+backend/
+│
+├── api/
+│   ├── routes/
+│   └── middleware/
+│
+├── core/
+│   ├── config/
+│   ├── security/
+│   └── logging/
+│
+├── analysis/
+│   ├── code/
+│   ├── database/
+│   ├── security/
+│   └── deployment/
+│
+├── ai/
+│   ├── llm/
+│   ├── embeddings/
+│   ├── classifiers/
+│   └── ranking/
+│
+├── validation/
+│
+├── models/
+│
+├── database/
+│
+├── workers/
+│
+└── tests/
+
+The extension can follow:
+
+extension/
+│
+├── src/
+│   ├── extension.ts
+│   ├── controllers/
+│   ├── analyzers/
+│   ├── providers/
+│   ├── services/
+│   ├── clients/
+│   └── ui/
+│
+└── package.json
+
+---
+
+36. Architectural Decision: Local + Cloud Hybrid
+
+The recommended architecture is hybrid.
+
+Local
+
+Best for:
+
+- Syntax analysis
+- Linting
+- Basic security checks
+- AST processing
+- Fast diagnostics
+- Sensitive-code filtering
+
+Cloud
+
+Best for:
+
+- Advanced AI reasoning
+- Large-scale project analysis
+- Historical knowledge retrieval
+- Complex optimization
+- Deployment intelligence
+- Cross-file reasoning
+
+Therefore:
+
+              Developer Machine
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+          ▼                     ▼
+     Local Engine          Cloud Engine
+          │                     │
+          └──────────┬──────────┘
+                     ▼
+                Final Result
+
+This provides a balance between speed, privacy, intelligence, and scalability.
+
+---
+
+37. Complete System Data Flow
+
+                    DEVELOPER
+                        │
+                        ▼
+                 IDE / EDITOR
+                        │
+                        ▼
+               EXTENSION LAYER
+                        │
+                        ▼
+              CONTEXT COLLECTION
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+             ▼                     ▼
+       LOCAL ANALYSIS         BACKEND API
+             │                     │
+             │                     ▼
+             │             INTELLIGENCE ENGINE
+             │                     │
+             │       ┌─────────────┼──────────────┐
+             │       │             │              │
+             │       ▼             ▼              ▼
+             │      CODE           DB          SECURITY
+             │      AI             AI            AI
+             │       │             │              │
+             │       └─────────────┼──────────────┘
+             │                     │
+             │                     ▼
+             │              AI / ML LAYER
+             │                     │
+             │                     ▼
+             │               RULE ENGINE
+             │                     │
+             │                     ▼
+             │                VALIDATOR
+             │                     │
+             └──────────────┬──────┘
+                            ▼
+                    RANKING ENGINE
+                            │
+                            ▼
+                  RECOMMENDATION ENGINE
+                            │
+                            ▼
+                     IDE DASHBOARD
+                            │
+             ┌──────────────┼───────────────┐
+             ▼              ▼               ▼
+        Code Fix       DB Optimization   Security Alert
+             │              │               │
+             └──────────────┼───────────────┘
+                            ▼
+                  DEPLOYMENT VALIDATION
+                            │
+                            ▼
+                      FINAL DECISION
+                            │
+                 ┌──────────┴───────────┐
+                 ▼                      ▼
+              DEPLOY                 BLOCK
+
+---
+
+38. Core Architectural Principles
+
+The system should follow these principles:
+
+1. AI-Assisted, Not AI-Dependent
+
+AI should enhance deterministic analysis rather than replace it.
+
+2. Validate Before Applying
+
+No generated fix should be trusted without appropriate validation.
+
+3. Privacy by Design
+
+Sensitive source code and secrets must be minimized, filtered, or processed locally whenever practical.
+
+4. Human-in-the-Loop
+
+Developers remain responsible for approving significant code, security, and deployment changes.
+
+5. Modular Architecture
+
+Each intelligence capability should be independently replaceable.
+
+6. Graceful Degradation
+
+The extension should remain useful even when cloud services are unavailable.
+
+7. Explainability
+
+Every recommendation should explain:
+
+What is wrong?
+Why is it wrong?
+How can it be fixed?
+What will change?
+How confident is the system?
+
+---
+
+39. Final Architecture Summary
+
+The Developer Intelligence Extension uses a hybrid IDE + local analysis + cloud intelligence architecture.
+
+The IDE extension captures developer context and performs lightweight local analysis. Requests requiring deeper reasoning are sent to the backend API. The Intelligence Engine then routes the request to the appropriate code, database, security, or deployment subsystem.
+
+The AI/ML layer generates explanations, predictions, and candidate solutions, while a deterministic Rule Engine and Validation Layer verify those recommendations before they reach the developer.
+
+The system therefore forms a continuous development intelligence loop:
+
+Code
+ ↓
+Analyze
+ ↓
+Detect
+ ↓
+Understand
+ ↓
+Recommend
+ ↓
+Validate
+ ↓
+Correct / Optimize
+ ↓
+Secure
+ ↓
+Test
+ ↓
+Deploy
+ ↓
+Monitor
+ ↓
+Learn
+
+This architecture makes the extension more than a conventional code assistant: it acts as a unified development intelligence and validation layer across coding, database performance, security, and deployment.

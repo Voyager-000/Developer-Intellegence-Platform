@@ -1,0 +1,869 @@
+Product Requirements Document (PRD)
+
+Developer Intelligence Extension
+
+1. Product Overview
+
+Product Name: Developer Intelligence Extension
+Product Type: Developer productivity, code intelligence, performance, security, and deployment validation extension
+
+2. Vision
+
+Build a unified developer extension that helps teams:
+
+Clean Code → Optimize Performance → Detect Security Risks → Validate Deployments → Deploy with Confidence
+
+The product should not behave as a collection of unrelated scanners. Its core value is to connect findings across the application stack and turn them into actionable recommendations.
+
+3. Core Workflow
+
+The primary workflow is:
+
+Scan → Detect → Explain → Recommend → Fix → Verify → Deploy
+
+Each issue should ideally move through this lifecycle rather than stopping at detection.
+
+---
+
+4. Problem Statement
+
+Developers currently rely on multiple disconnected tools for:
+
+- Code quality
+- Dead/unused code detection
+- Performance monitoring
+- API debugging
+- Database analysis
+- Security scanning
+- Environment validation
+- Deployment testing
+
+These tools often produce isolated warnings without explaining how issues are related.
+
+For example:
+
+«A frontend makes duplicate requests → the API processes each request → the backend performs repeated database queries → database latency increases → the user experiences a slow page.»
+
+The product should identify this relationship where technically possible instead of showing five unrelated warnings.
+
+---
+
+5. Target Users
+
+Primary Users
+
+- Software developers
+- Full-stack developers
+- Backend developers
+- Frontend developers
+- DevOps engineers
+- Small engineering teams
+
+Secondary Users
+
+- Technical leads
+- Engineering managers
+- Developers participating in projects/hackathons
+- Teams preparing applications for deployment
+
+---
+
+6. Product Goals
+
+Primary Goals
+
+1. Reduce unnecessary and redundant code.
+2. Identify performance bottlenecks across application layers.
+3. Detect common security vulnerabilities before deployment.
+4. Verify application readiness before deployment.
+5. Connect findings across modules to identify possible root causes.
+6. Provide actionable recommendations rather than raw warnings.
+7. Provide safe automation where confidence is high.
+8. Verify whether a recommended fix actually improved the situation.
+
+Non-Goals for MVP
+
+The MVP should not attempt to become:
+
+- A full enterprise observability platform
+- A replacement for every existing security scanner
+- A complete APM platform
+- A universal IDE
+- A fully autonomous coding agent
+- A production infrastructure management platform
+
+The MVP should focus on demonstrating the connected developer workflow.
+
+---
+
+7. Core Product Modules
+
+Module 1 — Junk Code Reduction
+
+Objective
+
+Identify unnecessary, redundant, obsolete, or unused code within a project.
+
+Detection
+
+The system should identify, where supported:
+
+- Unused variables
+- Unused functions
+- Unused components
+- Unused files
+- Unused imports
+- Duplicate code
+- Repeated code patterns
+- Dead code
+- Unreachable code
+- Redundant logic
+- Obsolete/legacy code
+- Unused dependencies
+
+Output
+
+Each finding should contain:
+
+Issue
+
+Location
+
+Reason
+
+Impact
+
+Recommendation
+
+Suggested Action
+
+Example:
+
+«"src/components/UserCard.tsx:42"
+Component is not referenced by any reachable module.
+Recommendation: Remove component if it is no longer required.»
+
+Safe Fixes
+
+The product may provide automated fixes for high-confidence cases.
+
+Examples:
+
+- Remove unused import
+- Remove unused variable
+- Remove clearly unused dependency
+- Apply safe formatting/refactoring
+
+Automated fixes must avoid destructive changes when confidence is low.
+
+---
+
+8. Module 2 — End-to-End Latency Optimization
+
+Objective
+
+Identify where application latency originates across the complete request path.
+
+Application Flow
+
+Frontend → API → Backend → Database → Response → Frontend
+
+The system should analyze multiple layers.
+
+Frontend Analysis
+
+Detect:
+
+- Slow rendering
+- Excessive re-renders
+- Duplicate API requests
+- Unnecessary network requests
+- Large payloads/resources
+- Network delays
+- Potentially expensive client-side operations
+
+API / Backend Analysis
+
+Detect:
+
+- Slow endpoints
+- Excessive requests
+- Sequential operations that may be optimized
+- Processing delays
+- Repeated backend operations
+- Potential bottlenecks
+
+Database Analysis
+
+Detect:
+
+- Slow queries
+- Repeated queries
+- Excessive database calls
+- Large data retrieval
+- Potentially inefficient queries
+- N+1-style access patterns where detectable
+- Query optimization opportunities
+
+---
+
+9. Request Tracing
+
+Request tracing is one of the core differentiating features.
+
+The system should attempt to correlate:
+
+Frontend Request → API Request → Backend Operation → Database Query → Response
+
+This allows the product to answer:
+
+«"Where did the latency actually come from?"»
+
+Example
+
+Instead of showing:
+
+- Frontend request: slow
+- API: slow
+- Database: slow
+
+The system should attempt to produce:
+
+«Frontend request took 1.8s.
+API processing accounted for 1.5s.
+1.2s was spent waiting on a repeated database query.
+Recommendation: investigate query duplication/cache strategy.»
+
+Important Constraint
+
+The system must distinguish between:
+
+Observed facts
+
+and
+
+Likely explanations
+
+It must not claim a root cause when the available evidence only supports a correlation.
+
+For uncertain findings, use language such as:
+
+«"Possible bottleneck"»
+
+or
+
+«"Likely contributing factor"»
+
+rather than presenting the conclusion as certain.
+
+---
+
+10. Module 3 — Security & Vulnerability Detection
+
+Objective
+
+Identify common security issues before deployment.
+
+Security Checks
+
+The MVP should support detection of:
+
+- Exposed API keys
+- Exposed secrets
+- Vulnerable dependencies
+- Unsafe input handling
+- Unsafe query construction
+- Authentication weaknesses
+- Authorization issues where detectable
+- Sensitive information exposed on the frontend
+- Insecure configuration
+- Debug settings that should not exist in production
+
+Severity
+
+Findings should be categorized as:
+
+Critical
+
+High
+
+Medium
+
+Low
+
+Severity should be based on the actual rule/evidence rather than arbitrary scoring.
+
+Security Finding Format
+
+Each issue should include:
+
+- Issue
+- Severity
+- Location
+- Evidence
+- Explanation
+- Potential impact
+- Recommended remediation
+- Verification step
+
+---
+
+11. Module 4 — Deployment Self-Test
+
+Objective
+
+Determine whether the application is sufficiently healthy and configured for deployment.
+
+This module should combine functional, integration, environment, and security validation.
+
+---
+
+11.1 Functional Validation
+
+Check whether:
+
+- Application builds successfully
+- Frontend starts/loads
+- Critical application flows work
+- APIs respond correctly
+- Required database operations work
+
+---
+
+11.2 Integration Validation
+
+Verify important communication paths:
+
+Frontend → API
+
+API → Backend
+
+Backend → Database
+
+The goal is to detect broken integrations before deployment.
+
+---
+
+11.3 Environment Validation
+
+Validate:
+
+- Required environment variables
+- Missing environment variables
+- API configuration
+- Database configuration
+- Production configuration
+- Incorrect environment-specific settings
+
+The system should identify configuration that may work locally but fail in deployment.
+
+---
+
+11.4 Security Validation
+
+Run relevant security checks before deployment.
+
+This should reuse the security analysis engine rather than creating an isolated security implementation.
+
+---
+
+11.5 Deployment Result
+
+The system should provide a clear readiness state:
+
+✅ Ready to Deploy
+
+No blocking issues detected.
+
+⚠️ Warnings
+
+Deployment may proceed, but non-blocking issues exist.
+
+❌ Issues Requiring Action
+
+One or more deployment-blocking problems were detected.
+
+The dashboard should clearly explain why a project received each status.
+
+---
+
+12. Module 5 — Shared Intelligence Layer
+
+This is a central architectural component.
+
+All modules should feed findings into one shared:
+
+Diagnostics + Recommendation Engine
+
+Instead of treating every finding independently, the engine should search for relationships.
+
+Example
+
+The system may detect:
+
+1. Duplicate frontend requests
+2. Repeated backend processing
+3. Repeated database queries
+4. Increased response time
+
+The intelligence layer can connect those observations and generate:
+
+«Possible cross-layer performance issue: repeated frontend requests appear to trigger repeated backend/database operations.»
+
+Important Principle
+
+The intelligence layer should prioritize:
+
+Evidence → Correlation → Explanation → Recommendation
+
+It should not invent relationships without supporting evidence.
+
+---
+
+13. Unified Finding Model
+
+All modules should use a common finding structure.
+
+Recommended structure:
+
+Finding
+├── ID
+├── Category
+├── Severity
+├── Location
+├── Evidence
+├── Description
+├── Impact
+├── Related Findings
+├── Recommendation
+├── Suggested Action
+├── Auto-Fix Available
+├── Confidence
+├── Verification Method
+└── Status
+
+Possible statuses:
+
+- New
+- Investigating
+- Fix Suggested
+- Fixed
+- Verified
+- Ignored
+- False Positive
+
+---
+
+14. Recommendation Engine
+
+Every important finding should produce an actionable recommendation.
+
+The recommendation should answer:
+
+What is wrong?
+
+Why does it matter?
+
+What should the developer do?
+
+Can the system fix it safely?
+
+How can the fix be verified?
+
+Example
+
+Issue:
+Duplicate API request detected.
+
+Reason:
+The same endpoint is requested twice during component initialization.
+
+Impact:
+Additional network latency and repeated backend processing.
+
+Recommendation:
+Review component initialization and consolidate the request.
+
+Action:
+Open affected file / apply suggested change.
+
+Verification:
+Re-run request trace and confirm the duplicate request is removed.
+
+---
+
+15. Safe Auto-Fix System
+
+Automated fixes should be introduced gradually.
+
+High-Confidence Fixes
+
+Examples:
+
+- Remove unused imports
+- Remove clearly unused variables
+- Remove safe duplicate imports
+- Apply straightforward dependency cleanup
+
+Medium/Low-Confidence Changes
+
+These should generally become:
+
+Suggested Fix
+
+rather than automatically modifying the project.
+
+Safety Principle
+
+The product should prefer:
+
+No destructive automation over an incorrect automatic fix.
+
+Before changing code, the system should preserve enough information for the developer to review or revert the change.
+
+---
+
+16. Verification System
+
+A critical part of the product is not merely recommending changes but checking whether the result improved.
+
+The product should support:
+
+Before → Change → After
+
+Example
+
+Before:
+
+«Endpoint latency: 900 ms»
+
+After fix:
+
+«Endpoint latency: 420 ms»
+
+The verification engine should show whether the observed metric improved.
+
+Where a precise quantitative comparison cannot be reliably established, the system should state that verification is inconclusive instead of fabricating improvement.
+
+---
+
+17. Dashboard
+
+The extension should provide one unified dashboard.
+
+Dashboard Areas
+
+Project Health
+
+- Overall diagnostic state
+- Critical issues
+- Deployment readiness
+
+Code Quality
+
+- Junk/dead code
+- Duplicate code
+- Dependency findings
+
+Performance
+
+- Slow requests
+- Request traces
+- Layer bottlenecks
+- Optimization opportunities
+
+Security
+
+- Vulnerabilities
+- Exposed secrets
+- Severity distribution
+
+Deployment
+
+- Functional test status
+- Integration status
+- Environment validation
+- Security status
+
+Recommendations
+
+- Highest-priority actions
+- Suggested fixes
+- Verification status
+
+---
+
+18. User Experience
+
+The extension should minimize context switching.
+
+Ideal Interaction
+
+Developer opens project.
+
+↓
+
+Extension scans project.
+
+↓
+
+Findings are grouped by category and priority.
+
+↓
+
+Developer selects a finding.
+
+↓
+
+System explains the problem.
+
+↓
+
+System identifies related findings.
+
+↓
+
+System recommends an action.
+
+↓
+
+Developer applies or reviews fix.
+
+↓
+
+System verifies the result.
+
+↓
+
+Deployment self-test is run.
+
+↓
+
+Developer receives deployment readiness status.
+
+---
+
+19. Prioritization
+
+The product should not overwhelm developers with hundreds of warnings.
+
+Prioritize findings using factors such as:
+
+- Severity
+- User/application impact
+- Confidence
+- Frequency
+- Cross-layer relationships
+- Deployment blocking status
+
+A high-impact issue with strong evidence should appear above minor cleanup findings.
+
+---
+
+20. MVP Scope
+
+The MVP should focus on the following capabilities.
+
+Code Analysis
+
+- JavaScript
+- TypeScript
+- Unused/dead code detection
+- Duplicate code detection
+- Dependency analysis
+
+Performance
+
+- Frontend network/performance monitoring
+- API latency analysis
+- Basic backend timing
+- Basic database latency tracing
+- Request tracing across available layers
+
+Security
+
+- Secret detection
+- Dependency vulnerability scanning
+- Basic unsafe input/query detection
+- Basic configuration checks
+
+Deployment
+
+- Build validation
+- Application startup validation
+- Basic critical-flow checks
+- API validation
+- Database connectivity/operation validation
+- Environment variable validation
+- Production configuration validation
+- Security validation
+
+Product Layer
+
+- Shared diagnostics model
+- Recommendation engine
+- Unified dashboard
+- Finding relationships
+- Basic safe auto-fixes
+- Before/after verification
+
+---
+
+21. Post-MVP Roadmap
+
+Future versions may include:
+
+- CI/CD integration
+- Pull-request analysis
+- More programming languages
+- More databases
+- Advanced root-cause analysis
+- Production monitoring
+- Continuous performance monitoring
+- More automated fixes
+- Team collaboration
+- Historical project health
+- Custom rules
+- Organization-wide policies
+- Advanced deployment gates
+
+---
+
+22. Technical Architecture Direction
+
+The implementation should preferably be modular.
+
+Suggested architecture:
+
+                    ┌──────────────────────┐
+                    │     Extension UI     │
+                    │      Dashboard       │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │ Diagnostics Engine   │
+                    │ + Recommendation     │
+                    │ + Correlation Layer  │
+                    └──────────┬───────────┘
+                               │
+       ┌───────────────────────┼────────────────────────┐
+       │                       │                        │
+┌──────▼──────┐         ┌──────▼──────┐          ┌──────▼──────┐
+│ Code Engine │         │ Performance │          │  Security   │
+│             │         │   Engine    │          │   Engine    │
+└──────┬──────┘         └──────┬──────┘          └──────┬──────┘
+       │                       │                        │
+       │                ┌──────▼──────┐                 │
+       │                │ Trace/Data  │                 │
+       │                │ Collection  │                 │
+       │                └──────┬──────┘                 │
+       │                       │                        │
+       └───────────────────────┼────────────────────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │ Deployment Self-Test │
+                    └──────────────────────┘
+
+This is a conceptual architecture, not a requirement to use these exact components or technologies.
+
+---
+
+23. Key Product Principles
+
+1. Evidence First
+
+Do not make claims without sufficient evidence.
+
+2. Actionable Over Informational
+
+A finding should tell the developer what to do next.
+
+3. Connected Diagnostics
+
+Find relationships across frontend, API, backend, database, security, and deployment.
+
+4. Safe Automation
+
+Automate only when confidence is sufficiently high.
+
+5. Verification Matters
+
+A fix is not complete until its result can be checked.
+
+6. Developer-Friendly
+
+The product should reduce cognitive load rather than create another stream of noisy alerts.
+
+---
+
+24. Differentiator
+
+The core differentiator is not any single scanner.
+
+The product combines:
+
+Code Intelligence + Performance Tracing + Security Analysis + Deployment Validation + Cross-Layer Diagnostics
+
+into one workflow.
+
+Traditional tools may answer:
+
+«"There is a slow request."»
+
+This product aims to answer:
+
+«"This frontend action generated duplicate API requests, which triggered repeated backend work and database calls. Here is the likely bottleneck, the recommended action, and a way to verify the improvement."»
+
+Therefore the core product proposition is:
+
+CLEAN → OPTIMIZE → SECURE → VALIDATE → DEPLOY
+
+---
+
+25. Success Criteria for MVP
+
+The MVP should demonstrate that a developer can:
+
+1. Open a project.
+2. Run an analysis.
+3. Discover code-quality issues.
+4. Identify performance bottlenecks.
+5. Detect security issues.
+6. Validate environment/configuration.
+7. Run deployment self-tests.
+8. See related findings in one dashboard.
+9. Receive actionable recommendations.
+10. Apply at least some safe fixes.
+11. Re-run verification.
+12. Understand whether the project is ready for deployment.
+
+The MVP should prioritize a convincing end-to-end workflow over attempting maximum feature breadth.
+
+---
+
+26. Expected Output of Future Development Work
+
+Any future development, design, architecture, or implementation work related to this product should remain aligned with this PRD.
+
+When proposing new features:
+
+- Explain the problem solved.
+- Identify which module it belongs to.
+- Explain how it integrates with the shared intelligence layer.
+- Define MVP vs future scope.
+- Avoid unnecessary complexity.
+- Preserve the core CLEAN → OPTIMIZE → SECURE → VALIDATE → DEPLOY workflow.
+
+When designing implementation details, prefer practical, buildable solutions that can be demonstrated reliably.
+
+When suggesting AI-based behavior, clearly distinguish between:
+
+Observed data → Inference → Recommendation
+
+and avoid presenting uncertain AI-generated conclusions as guaranteed facts.
+
+---
+
+27. One-Line Product Definition
+
+A developer intelligence extension that connects code quality, performance, security, and deployment diagnostics into one actionable workflow.

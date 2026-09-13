@@ -1,0 +1,2181 @@
+Complete API Specification
+
+Developer Intelligence Extension
+
+Document Version: 1.0
+API Version: v1
+Protocol: HTTPS
+API Style: RESTful
+Data Format: JSON
+Backend: Python + FastAPI
+Authentication: JWT / OAuth 2.0-compatible token flow
+Primary Database: PostgreSQL
+Cache / Queue: Redis
+Vector Search: pgvector / Vector Database
+Client: VS Code Extension using TypeScript
+
+---
+
+1. API Purpose
+
+The API layer is the communication backbone between the IDE extension and the Developer Intelligence backend.
+
+It allows the extension to:
+
+- Analyze source code
+- Detect coding issues
+- Identify root causes
+- Generate fixes
+- Validate generated fixes
+- Analyze database queries
+- Recommend indexes and query optimizations
+- Run security scans
+- Detect vulnerabilities and secrets
+- Validate deployment readiness
+- Retrieve reports
+- Submit developer feedback
+- Retrieve historical intelligence
+
+The API is designed around a hybrid architecture:
+
+Developer
+    │
+    ▼
+IDE Extension
+    │
+    │ HTTPS / JSON
+    ▼
+API Gateway
+    │
+    ├── Authentication
+    ├── Authorization
+    ├── Validation
+    ├── Rate Limiting
+    └── Routing
+          │
+          ├── Code Intelligence
+          ├── Database Intelligence
+          ├── Security Intelligence
+          ├── Deployment Intelligence
+          └── AI/ML Services
+                    │
+                    ▼
+            Validation Engine
+                    │
+                    ▼
+              Data Layer
+
+---
+
+2. Base URL
+
+Development
+
+http://localhost:8000/api/v1
+
+Production
+
+https://api.<domain>/api/v1
+
+All production communication must use TLS/HTTPS.
+
+---
+
+3. API Design Principles
+
+The API follows these principles:
+
+Stateless Requests
+
+Each request contains enough information for the server to process it without relying on server-side session state.
+
+Resource-Oriented URLs
+
+Example:
+
+/projects
+/analysis/code
+/security/scans
+/deployment/validations
+
+Versioning
+
+/api/v1/...
+
+JSON Communication
+
+Request and response bodies use JSON unless otherwise specified.
+
+Asynchronous Processing
+
+Long-running operations return a job ID instead of keeping the HTTP connection open.
+
+---
+
+4. Standard HTTP Headers
+
+Every authenticated request should contain:
+
+Authorization: Bearer <access_token>
+Content-Type: application/json
+Accept: application/json
+X-Request-ID: <uuid>
+X-Client-Version: 1.0.0
+X-Extension-Version: 1.0.0
+
+Optional:
+
+X-Project-ID: proj_xxxxx
+
+---
+
+5. Standard Response Envelope
+
+Successful response:
+
+{
+  "success": true,
+  "data": {},
+  "error": null,
+  "request_id": "req_123456"
+}
+
+Failure response:
+
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "The submitted request is invalid.",
+    "details": {}
+  },
+  "request_id": "req_123456"
+}
+
+---
+
+6. Authentication API
+
+6.1 Login
+
+Endpoint
+
+POST /auth/login
+
+Purpose
+
+Authenticates the developer and issues access credentials.
+
+Request
+
+{
+  "email": "developer@example.com",
+  "password": "********"
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "access_token": "eyJhbGciOi...",
+    "refresh_token": "eyJhbGciOi...",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "user": {
+      "id": "usr_001",
+      "name": "Developer",
+      "email": "developer@example.com"
+    }
+  },
+  "error": null,
+  "request_id": "req_001"
+}
+
+---
+
+7. Token Refresh
+
+Endpoint
+
+POST /auth/refresh
+
+Request
+
+{
+  "refresh_token": "eyJhbGciOi..."
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "access_token": "eyJhbGciOi...",
+    "expires_in": 3600
+  },
+  "error": null,
+  "request_id": "req_002"
+}
+
+---
+
+8. Logout
+
+Endpoint
+
+POST /auth/logout
+
+The server invalidates the associated refresh token/session.
+
+---
+
+9. User Profile
+
+GET "/users/me"
+
+Returns authenticated user information.
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "id": "usr_001",
+    "name": "Developer",
+    "email": "developer@example.com",
+    "role": "developer",
+    "created_at": "2026-09-09T10:00:00Z"
+  }
+}
+
+---
+
+10. Project API
+
+A project represents the codebase being analyzed.
+
+Create Project
+
+POST /projects
+
+Request
+
+{
+  "name": "Developer Intelligence Demo",
+  "repository": {
+    "provider": "github",
+    "url": "https://github.com/user/project",
+    "branch": "main"
+  },
+  "language": "python"
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "project_id": "proj_001",
+    "name": "Developer Intelligence Demo",
+    "status": "active"
+  }
+}
+
+---
+
+11. Get Projects
+
+GET /projects
+
+Optional query parameters:
+
+?page=1
+&limit=20
+&language=python
+
+---
+
+12. Get Project
+
+GET /projects/{project_id}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "id": "proj_001",
+    "name": "Developer Intelligence Demo",
+    "language": "python",
+    "repository": "github.com/user/project",
+    "default_branch": "main",
+    "created_at": "2026-09-09T10:00:00Z"
+  }
+}
+
+---
+
+13. Update Project
+
+PATCH /projects/{project_id}
+
+Example:
+
+{
+  "name": "Updated Project Name",
+  "default_branch": "develop"
+}
+
+---
+
+14. Code Analysis API
+
+This is one of the primary APIs.
+
+Endpoint
+
+POST /analysis/code
+
+Purpose
+
+Analyzes code for:
+
+- Bugs
+- Syntax errors
+- Code quality problems
+- Complexity
+- Security issues
+- Dependency issues
+- Maintainability problems
+
+---
+
+15. Code Analysis Request Schema
+
+{
+  "project_id": "proj_001",
+  "file_path": "src/auth.py",
+  "language": "python",
+  "code": "def authenticate(user): ...",
+  "analysis_types": [
+    "syntax",
+    "quality",
+    "bugs",
+    "security",
+    "complexity"
+  ],
+  "context": {
+    "imports": [
+      "database",
+      "auth"
+    ],
+    "dependencies": [
+      "fastapi"
+    ],
+    "stack_trace": null,
+    "compiler_error": null
+  },
+  "options": {
+    "include_explanation": true,
+    "include_fix": true
+  }
+}
+
+---
+
+16. Code Analysis Response
+
+{
+  "success": true,
+  "data": {
+    "analysis_id": "analysis_001",
+    "status": "completed",
+    "language": "python",
+    "summary": {
+      "total_findings": 3,
+      "critical": 0,
+      "high": 1,
+      "medium": 1,
+      "low": 1
+    },
+    "findings": [
+      {
+        "id": "finding_001",
+        "category": "bug",
+        "severity": "high",
+        "line_start": 42,
+        "line_end": 42,
+        "message": "Potential null reference",
+        "root_cause": "The object may be undefined before attribute access.",
+        "confidence": 0.94
+      }
+    ]
+  },
+  "request_id": "req_003"
+}
+
+---
+
+17. Finding Object
+
+Every finding should follow a standardized schema.
+
+{
+  "id": "finding_001",
+  "category": "security",
+  "subcategory": "sql_injection",
+  "severity": "critical",
+  "confidence": 0.97,
+  "file": "src/db.py",
+  "line_start": 24,
+  "line_end": 24,
+  "message": "Potential SQL injection vulnerability.",
+  "description": "User-controlled input is directly concatenated into a SQL query.",
+  "root_cause": "The query is constructed without parameterization.",
+  "recommendation": "Use parameterized queries."
+}
+
+---
+
+18. Supported Severity Levels
+
+critical
+high
+medium
+low
+info
+
+---
+
+19. Self-Correction API
+
+Generate Fix
+
+POST /analysis/fix
+
+Request
+
+{
+  "project_id": "proj_001",
+  "analysis_id": "analysis_001",
+  "finding_id": "finding_001",
+  "file_path": "src/auth.py",
+  "language": "python",
+  "code_context": {
+    "before": "...",
+    "target": "...",
+    "after": "..."
+  }
+}
+
+---
+
+20. Fix Generation Response
+
+{
+  "success": true,
+  "data": {
+    "fix_id": "fix_001",
+    "status": "generated",
+    "candidates": [
+      {
+        "candidate_id": "candidate_001",
+        "original_code": "...",
+        "suggested_code": "...",
+        "explanation": "Adds a null check before accessing the object.",
+        "confidence": 0.94,
+        "risk": "low"
+      }
+    ]
+  }
+}
+
+---
+
+21. Multiple Candidate Fixes
+
+The system may return multiple solutions.
+
+{
+  "candidate_id": "candidate_001",
+  "confidence": 0.95,
+  "risk": "low",
+  "validation_status": "pending"
+}
+
+{
+  "candidate_id": "candidate_002",
+  "confidence": 0.81,
+  "risk": "medium",
+  "validation_status": "pending"
+}
+
+The ranking engine selects the preferred recommendation.
+
+---
+
+22. Fix Validation API
+
+Endpoint
+
+POST /analysis/fix/validate
+
+Request
+
+{
+  "project_id": "proj_001",
+  "fix_id": "fix_001",
+  "candidate_id": "candidate_001",
+  "file_path": "src/auth.py",
+  "original_code": "...",
+  "modified_code": "...",
+  "checks": [
+    "syntax",
+    "compile",
+    "unit_tests",
+    "security",
+    "regression"
+  ]
+}
+
+---
+
+23. Fix Validation Response
+
+{
+  "success": true,
+  "data": {
+    "validation_id": "validation_001",
+    "status": "passed",
+    "confidence": 0.96,
+    "checks": {
+      "syntax": {
+        "status": "passed"
+      },
+      "compile": {
+        "status": "passed"
+      },
+      "unit_tests": {
+        "status": "passed",
+        "passed": 48,
+        "failed": 0
+      },
+      "security": {
+        "status": "passed"
+      },
+      "regression": {
+        "status": "passed"
+      }
+    }
+  }
+}
+
+---
+
+24. Apply Fix API
+
+The backend should generally return a validated patch, while the extension performs the actual workspace modification after developer approval.
+
+POST /analysis/fix/apply
+
+Request
+
+{
+  "project_id": "proj_001",
+  "fix_id": "fix_001",
+  "candidate_id": "candidate_001",
+  "validation_id": "validation_001"
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "status": "approved_for_application",
+    "patch": "...",
+    "requires_user_confirmation": true
+  }
+}
+
+For safety, the IDE should retain the original content and support rollback.
+
+---
+
+25. Database Analysis API
+
+Endpoint
+
+POST /analysis/database
+
+Supported Database Types
+
+PostgreSQL
+MySQL
+SQLite
+MongoDB
+
+---
+
+26. Database Analysis Request
+
+{
+  "project_id": "proj_001",
+  "database": {
+    "type": "postgresql",
+    "version": "16"
+  },
+  "query": "SELECT * FROM users WHERE email = $1",
+  "schema": {
+    "tables": [
+      {
+        "name": "users",
+        "columns": [
+          {
+            "name": "id",
+            "type": "integer"
+          },
+          {
+            "name": "email",
+            "type": "varchar"
+          }
+        ],
+        "indexes": []
+      }
+    ]
+  },
+  "execution_plan": "...",
+  "statistics": {
+    "execution_time_ms": 340,
+    "rows_scanned": 120000,
+    "rows_returned": 1
+  }
+}
+
+---
+
+27. Database Analysis Response
+
+{
+  "success": true,
+  "data": {
+    "analysis_id": "db_analysis_001",
+    "performance_score": 48,
+    "findings": [
+      {
+        "id": "db_finding_001",
+        "type": "missing_index",
+        "severity": "medium",
+        "message": "No suitable index detected for frequent email lookups.",
+        "recommendation": {
+          "type": "index",
+          "table": "users",
+          "columns": [
+            "email"
+          ]
+        },
+        "confidence": 0.91
+      }
+    ]
+  }
+}
+
+---
+
+28. Database Optimization API
+
+POST /analysis/database/optimize
+
+Request
+
+{
+  "project_id": "proj_001",
+  "database_type": "postgresql",
+  "query": "SELECT * FROM users WHERE status='active'",
+  "schema": "...",
+  "execution_plan": "..."
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "original_query": "...",
+    "recommendations": [
+      {
+        "type": "index",
+        "priority": "high",
+        "recommendation": "Create an index supporting the filtering pattern.",
+        "confidence": 0.89
+      },
+      {
+        "type": "query",
+        "priority": "medium",
+        "optimized_query": "...",
+        "confidence": 0.84
+      }
+    ]
+  }
+}
+
+---
+
+29. Database Benchmark API
+
+A useful advanced feature is benchmark comparison.
+
+POST /analysis/database/benchmark
+
+Request:
+
+{
+  "database_type": "postgresql",
+  "queries": [
+    {
+      "name": "original",
+      "query": "..."
+    },
+    {
+      "name": "optimized",
+      "query": "..."
+    }
+  ],
+  "iterations": 100
+}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "query": "original",
+        "average_execution_time_ms": 320
+      },
+      {
+        "query": "optimized",
+        "average_execution_time_ms": 71
+      }
+    ]
+  }
+}
+
+The system should only claim measured performance improvement when a benchmark was actually executed.
+
+---
+
+30. Security Scan API
+
+Start Scan
+
+POST /security/scans
+
+Request
+
+{
+  "project_id": "proj_001",
+  "commit_sha": "abc123",
+  "scan_types": [
+    "sast",
+    "sca",
+    "secret_detection",
+    "configuration"
+  ],
+  "environment": "development"
+}
+
+---
+
+31. Security Scan Response
+
+Security scans may take significant time, so the API returns:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "sec_job_001",
+    "status": "queued"
+  }
+}
+
+---
+
+32. Security Scan Status
+
+GET /security/scans/{job_id}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "sec_job_001",
+    "status": "running",
+    "progress": 62
+  }
+}
+
+---
+
+33. Security Report
+
+GET /security/reports/{project_id}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "project_id": "proj_001",
+    "security_score": 86,
+    "summary": {
+      "critical": 0,
+      "high": 2,
+      "medium": 4,
+      "low": 7
+    },
+    "findings": [
+      {
+        "id": "sec_001",
+        "category": "dependency",
+        "severity": "high",
+        "package": "example-package",
+        "recommendation": "Upgrade to a patched release."
+      }
+    ]
+  }
+}
+
+Sensitive credentials must never be returned as part of security results.
+
+---
+
+34. Secret Detection API
+
+Optional dedicated endpoint:
+
+POST /security/secrets
+
+Request
+
+{
+  "project_id": "proj_001",
+  "files": [
+    {
+      "path": "config.py",
+      "content": "..."
+    }
+  ]
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "findings": [
+      {
+        "type": "possible_api_key",
+        "file": "config.py",
+        "line": 18,
+        "severity": "critical",
+        "redacted_value": "AIza************"
+      }
+    ]
+  }
+}
+
+The original secret should remain local where possible.
+
+---
+
+35. Dependency Analysis API
+
+POST /security/dependencies
+
+Request:
+
+{
+  "project_id": "proj_001",
+  "manifest_files": [
+    "package.json",
+    "package-lock.json"
+  ]
+}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "dependencies": 48,
+    "vulnerable_dependencies": 3,
+    "findings": []
+  }
+}
+
+---
+
+36. Deployment Validation API
+
+Start Validation
+
+POST /deployment/validations
+
+Request
+
+{
+  "project_id": "proj_001",
+  "commit_sha": "abc123",
+  "environment": "production",
+  "checks": [
+    "build",
+    "tests",
+    "security",
+    "dependencies",
+    "configuration",
+    "container",
+    "performance"
+  ]
+}
+
+---
+
+37. Deployment Validation Response
+
+{
+  "success": true,
+  "data": {
+    "job_id": "deploy_job_001",
+    "status": "queued"
+  }
+}
+
+---
+
+38. Deployment Validation Status
+
+GET /deployment/validations/{job_id}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "deploy_job_001",
+    "status": "completed",
+    "progress": 100,
+    "readiness_score": 87,
+    "decision": "review"
+  }
+}
+
+---
+
+39. Deployment Report
+
+GET /deployment/reports/{project_id}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "readiness_score": 87,
+    "decision": "review",
+    "scores": {
+      "code_quality": 88,
+      "security": 91,
+      "testing": 82,
+      "dependencies": 94,
+      "configuration": 90,
+      "performance": 78
+    },
+    "blocking_issues": [],
+    "warnings": [
+      {
+        "category": "performance",
+        "message": "Performance regression detected."
+      }
+    ]
+  }
+}
+
+---
+
+40. Deployment Decision Model
+
+The API uses three main decisions:
+
+READY
+REVIEW
+BLOCKED
+
+READY
+
+No blocking issues detected.
+
+REVIEW
+
+Non-critical warnings require developer review.
+
+BLOCKED
+
+At least one release-blocking condition exists.
+
+Example:
+
+{
+  "decision": "blocked",
+  "blocking_issues": [
+    {
+      "category": "security",
+      "severity": "critical",
+      "message": "Critical security vulnerability detected."
+    }
+  ]
+}
+
+---
+
+41. AI Recommendation API
+
+For direct AI-assisted analysis:
+
+POST /ai/recommend
+
+Request
+
+{
+  "project_id": "proj_001",
+  "task": "explain_and_fix",
+  "language": "python",
+  "context": {
+    "code": "...",
+    "error": "...",
+    "stack_trace": "..."
+  },
+  "constraints": {
+    "preserve_public_api": true,
+    "avoid_dependency_changes": true
+  }
+}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "explanation": "...",
+    "recommendations": [
+      {
+        "type": "code_fix",
+        "content": "...",
+        "confidence": 0.91
+      }
+    ]
+  }
+}
+
+---
+
+42. AI Prompt Security
+
+The API must sanitize context before sending it to an external model.
+
+IDE
+ ↓
+Context Extraction
+ ↓
+Secret Scanner
+ ↓
+Redaction
+ ↓
+Prompt Builder
+ ↓
+AI Provider
+
+Sensitive values should be converted to placeholders:
+
+DATABASE_PASSWORD
+        ↓
+[REDACTED_SECRET]
+
+---
+
+43. Knowledge Retrieval API
+
+For historical intelligence:
+
+POST /knowledge/search
+
+Request:
+
+{
+  "query": "Python null reference after database lookup",
+  "project_id": "proj_001",
+  "limit": 5
+}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "knowledge_001",
+        "similarity": 0.92,
+        "category": "runtime_error",
+        "summary": "Null validation before object access"
+      }
+    ]
+  }
+}
+
+---
+
+44. Feedback API
+
+POST /feedback
+
+Request:
+
+{
+  "project_id": "proj_001",
+  "finding_id": "finding_001",
+  "recommendation_id": "candidate_001",
+  "action": "accepted",
+  "comment": "The generated fix solved the issue."
+}
+
+Supported actions:
+
+accepted
+rejected
+modified
+ignored
+false_positive
+
+---
+
+45. Analytics API
+
+The platform can expose aggregated developer/project metrics.
+
+GET /analytics/projects/{project_id}
+
+Example:
+
+{
+  "success": true,
+  "data": {
+    "issues_detected": 182,
+    "issues_resolved": 153,
+    "fix_acceptance_rate": 0.84,
+    "security_issues": 24,
+    "database_optimizations": 18,
+    "deployment_blocks": 7
+  }
+}
+
+These metrics should be clearly labeled as platform measurements, not claims of real-world productivity improvement unless separately measured.
+
+---
+
+46. Job Management API
+
+All long-running operations should use a common job architecture.
+
+Job Creation
+
+POST /security/scans
+POST /deployment/validations
+POST /analysis/project
+
+returns:
+
+{
+  "job_id": "job_123",
+  "status": "queued"
+}
+
+Generic Job Status
+
+GET /jobs/{job_id}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "job_123",
+    "type": "security_scan",
+    "status": "running",
+    "progress": 54,
+    "created_at": "2026-09-09T10:00:00Z",
+    "started_at": "2026-09-09T10:00:05Z"
+  }
+}
+
+---
+
+47. Job Cancellation
+
+POST /jobs/{job_id}/cancel
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "job_123",
+    "status": "cancelled"
+  }
+}
+
+Cancellation should be supported only for jobs that are safely cancellable.
+
+---
+
+48. Project-Wide Analysis
+
+For repository-level analysis:
+
+POST /analysis/project
+
+Request:
+
+{
+  "project_id": "proj_001",
+  "commit_sha": "abc123",
+  "analysis_types": [
+    "code",
+    "security",
+    "database",
+    "dependencies"
+  ]
+}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "project_analysis_001",
+    "status": "queued"
+  }
+}
+
+---
+
+49. Git Integration APIs
+
+Connect Repository
+
+POST /integrations/git
+
+Request:
+
+{
+  "provider": "github",
+  "repository": "user/project",
+  "branch": "main"
+}
+
+---
+
+50. Git Diff Analysis
+
+POST /analysis/diff
+
+Request:
+
+{
+  "project_id": "proj_001",
+  "base_commit": "abc123",
+  "target_commit": "def456"
+}
+
+The system analyzes only changed code where possible.
+
+This significantly reduces analysis cost and latency.
+
+---
+
+51. Pull Request Analysis
+
+POST /analysis/pull-request
+
+Request:
+
+{
+  "project_id": "proj_001",
+  "pull_request_id": 42
+}
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "job_id": "pr_analysis_001",
+    "status": "queued"
+  }
+}
+
+---
+
+52. API Pagination
+
+For large collections:
+
+GET /projects?page=1&limit=20
+
+Response:
+
+{
+  "success": true,
+  "data": {
+    "items": [],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 74,
+      "total_pages": 4
+    }
+  }
+}
+
+---
+
+53. Filtering and Sorting
+
+Example:
+
+GET /findings?severity=high&category=security&status=open
+
+Sorting:
+
+GET /findings?sort=-created_at
+
+---
+
+54. Error Codes
+
+The platform should standardize error codes.
+
+AUTH_REQUIRED
+INVALID_TOKEN
+TOKEN_EXPIRED
+ACCESS_DENIED
+PROJECT_NOT_FOUND
+INVALID_REQUEST
+INVALID_LANGUAGE
+ANALYSIS_FAILED
+FIX_GENERATION_FAILED
+FIX_VALIDATION_FAILED
+DATABASE_ANALYSIS_FAILED
+SECURITY_SCAN_FAILED
+DEPLOYMENT_VALIDATION_FAILED
+AI_SERVICE_UNAVAILABLE
+RATE_LIMIT_EXCEEDED
+JOB_NOT_FOUND
+JOB_ALREADY_COMPLETED
+INTERNAL_ERROR
+SERVICE_UNAVAILABLE
+
+---
+
+55. HTTP Status Codes
+
+200 → Successful operation
+201 → Resource created
+202 → Async job accepted
+204 → Successful operation without body
+
+400 → Bad request
+401 → Authentication required
+403 → Access denied
+404 → Resource not found
+409 → Conflict
+422 → Validation error
+429 → Rate limit exceeded
+
+500 → Internal server error
+502 → Upstream service error
+503 → Service temporarily unavailable
+504 → Gateway timeout
+
+---
+
+56. Rate Limiting
+
+Rate limits should differ by operation cost.
+
+Example initial configuration:
+
+Normal API:
+100 requests/minute
+
+Code Analysis:
+60 requests/minute
+
+AI Fix Generation:
+20 requests/minute
+
+Security Scan:
+10 requests/hour
+
+Project Scan:
+5 requests/hour
+
+These values should be configurable based on infrastructure capacity.
+
+Response:
+
+429 Too Many Requests
+Retry-After: 30
+
+---
+
+57. Request Size Limits
+
+To prevent excessive payloads:
+
+Single code request       → configurable limit
+Project metadata          → small
+Large repository analysis → asynchronous upload/job
+
+Large files should be chunked or processed locally rather than placed directly into ordinary API requests.
+
+---
+
+58. API Security Controls
+
+The API gateway should implement:
+
+TLS
+JWT authentication
+RBAC authorization
+Rate limiting
+Input validation
+Request size limits
+CORS policy
+Audit logging
+Secret redaction
+Abuse detection
+
+---
+
+59. Authorization Model
+
+Example permissions:
+
+developer:
+    read_project
+    analyze_code
+    generate_fix
+    run_security_scan
+    run_db_analysis
+    view_reports
+
+project_owner:
+    all developer permissions
+    manage_project
+    manage_integrations
+
+admin:
+    system administration
+    audit access
+
+---
+
+60. API Audit Logging
+
+Important API actions should create an audit record.
+
+Example:
+
+{
+  "timestamp": "2026-09-09T10:00:00Z",
+  "user_id": "usr_001",
+  "project_id": "proj_001",
+  "action": "security_scan_started",
+  "request_id": "req_123",
+  "ip_hash": "..."
+}
+
+Do not store sensitive source code or credentials inside ordinary audit logs.
+
+---
+
+61. WebSocket / Live Updates
+
+For real-time job status, a future version can use:
+
+WebSocket
+GET /ws/jobs/{job_id}
+
+Example events:
+
+{
+  "event": "progress",
+  "job_id": "job_123",
+  "progress": 72
+}
+
+{
+  "event": "completed",
+  "job_id": "job_123",
+  "status": "completed"
+}
+
+For the MVP, polling is simpler:
+
+GET /jobs/{job_id}
+
+---
+
+62. API-to-Worker Architecture
+
+Long-running requests should follow:
+
+IDE
+ │
+ ▼
+POST /security/scans
+ │
+ ▼
+API Service
+ │
+ ▼
+Redis Queue
+ │
+ ▼
+Worker
+ │
+ ├── Security Scanner
+ ├── Dependency Analyzer
+ ├── AI Service
+ └── Validation Engine
+ │
+ ▼
+PostgreSQL
+ │
+ ▼
+GET /jobs/{id}
+ │
+ ▼
+IDE
+
+---
+
+63. AI Provider Abstraction
+
+The backend should not directly bind the application to a single AI vendor.
+
+Use:
+
+AIProvider Interface
+       │
+       ├── OpenAI Adapter
+       ├── Local Model Adapter
+       ├── Other Provider Adapter
+       └── Mock Provider
+
+This makes testing and future model replacement easier.
+
+---
+
+64. Model Request Schema
+
+Internally:
+
+{
+  "task": "code_fix",
+  "language": "python",
+  "problem": {
+    "type": "runtime_error",
+    "message": "...",
+    "severity": "high"
+  },
+  "context": {
+    "code": "...",
+    "dependencies": []
+  },
+  "constraints": {
+    "preserve_api": true,
+    "minimal_change": true
+  }
+}
+
+---
+
+65. AI Response Schema
+
+{
+  "explanation": "...",
+  "root_cause": "...",
+  "candidates": [
+    {
+      "code": "...",
+      "reason": "...",
+      "confidence": 0.91
+    }
+  ],
+  "warnings": []
+}
+
+AI output must pass schema validation before downstream processing.
+
+---
+
+66. Validation Pipeline API
+
+Internally:
+
+AI Recommendation
+       ↓
+Schema Validation
+       ↓
+Syntax Validation
+       ↓
+Compile/Test
+       ↓
+Security Validation
+       ↓
+Risk Evaluation
+       ↓
+Ranking
+
+The API should expose the final validated result rather than presenting raw AI output as authoritative.
+
+---
+
+67. Database Connection Security
+
+The database-analysis API should support two modes.
+
+Mode A — Static
+
+Developer sends:
+
+Query
+Schema
+Execution Plan
+Statistics
+
+No direct database credentials are required.
+
+Mode B — Controlled Connection
+
+The backend or local agent connects to the database using temporary, least-privileged credentials.
+
+Credentials should:
+
+- Never be logged
+- Never be stored permanently unless explicitly required
+- Be encrypted in transit
+- Be scoped only to required operations
+
+---
+
+68. Deployment Validation Sources
+
+Deployment analysis may inspect:
+
+Git repository
+Dockerfile
+docker-compose.yml
+CI/CD workflow
+Environment configuration
+Dependency manifests
+Application configuration
+Security scan results
+Build/test results
+
+---
+
+69. Deployment Validation API Pipeline
+
+POST /deployment/validations
+            │
+            ▼
+        Create Job
+            │
+            ▼
+       Build Worker
+            │
+            ├── Build
+            ├── Unit Tests
+            ├── Dependency Scan
+            ├── SAST
+            ├── Secrets
+            ├── Config
+            ├── Container
+            └── Performance
+                    │
+                    ▼
+             Risk Aggregator
+                    │
+                    ▼
+              Readiness Score
+                    │
+                    ▼
+              READY/REVIEW/BLOCKED
+
+---
+
+70. API Performance Targets
+
+Recommended engineering targets for the MVP:
+
+Endpoint Type| Target
+Authentication| < 500 ms
+Basic code analysis| < 1.5 s
+Simple code fix generation| < 5 s
+Database analysis| < 5 s
+Job submission| < 500 ms
+Job status request| < 300 ms
+Security scan| Asynchronous
+Project scan| Asynchronous
+Deployment validation| Asynchronous
+
+These are target values for architecture planning, not guaranteed SLAs.
+
+---
+
+71. Caching
+
+Frequently repeated analysis requests can be cached.
+
+Cache key:
+
+SHA256(
+    code +
+    language +
+    analyzer_version +
+    dependency_hash +
+    configuration
+)
+
+Example:
+
+analysis:7b9c2e...
+
+Cached results should have expiration and versioning so outdated analyzer behavior is not reused indefinitely.
+
+---
+
+72. Idempotency
+
+For expensive operations, support:
+
+Idempotency-Key: <uuid>
+
+Example:
+
+POST /security/scans
+Idempotency-Key: 3d0c...
+
+If the same request is accidentally submitted twice, the system can return the existing job rather than launching duplicate scans.
+
+---
+
+73. Observability
+
+Every API request should generate:
+
+Request ID
+Latency
+HTTP Status
+Service
+User/Project identifier
+Error code
+
+Metrics:
+
+api_requests_total
+api_latency_seconds
+analysis_jobs_total
+analysis_failures_total
+ai_requests_total
+ai_failures_total
+security_findings_total
+deployment_blocks_total
+
+---
+
+74. API Documentation
+
+FastAPI should expose:
+
+/docs
+
+for Swagger UI and:
+
+/openapi.json
+
+for the OpenAPI specification.
+
+The OpenAPI definition should document:
+
+- Authentication
+- Parameters
+- Request schemas
+- Response schemas
+- Error responses
+- Examples
+
+---
+
+75. Suggested FastAPI Project Structure
+
+backend/
+│
+├── app/
+│   ├── main.py
+│   │
+│   ├── api/
+│   │   ├── deps.py
+│   │   └── routes/
+│   │       ├── auth.py
+│   │       ├── projects.py
+│   │       ├── analysis.py
+│   │       ├── database.py
+│   │       ├── security.py
+│   │       ├── deployment.py
+│   │       ├── jobs.py
+│   │       └── feedback.py
+│   │
+│   ├── schemas/
+│   │   ├── auth.py
+│   │   ├── analysis.py
+│   │   ├── database.py
+│   │   ├── security.py
+│   │   └── deployment.py
+│   │
+│   ├── services/
+│   │   ├── code_service.py
+│   │   ├── database_service.py
+│   │   ├── security_service.py
+│   │   ├── deployment_service.py
+│   │   └── ai_service.py
+│   │
+│   ├── workers/
+│   │   └── tasks.py
+│   │
+│   ├── models/
+│   │
+│   ├── database/
+│   │
+│   └── core/
+│       ├── config.py
+│       ├── security.py
+│       └── logging.py
+│
+└── tests/
+
+---
+
+76. Extension-to-API Communication
+
+The VS Code extension should use a dedicated API client.
+
+extension/
+│
+├── clients/
+│   └── apiClient.ts
+│
+├── services/
+│   ├── codeAnalysisService.ts
+│   ├── databaseService.ts
+│   ├── securityService.ts
+│   └── deploymentService.ts
+│
+└── providers/
+    ├── diagnosticProvider.ts
+    └── codeActionProvider.ts
+
+Example client:
+
+POST /analysis/code
+        ↓
+Response
+        ↓
+DiagnosticCollection
+        ↓
+IDE Problems Panel
+
+---
+
+77. Complete Self-Correction API Flow
+
+Developer saves code
+        │
+        ▼
+Extension captures context
+        │
+        ▼
+POST /analysis/code
+        │
+        ▼
+Finding returned
+        │
+        ▼
+Developer selects Quick Fix
+        │
+        ▼
+POST /analysis/fix
+        │
+        ▼
+Candidate fix generated
+        │
+        ▼
+POST /analysis/fix/validate
+        │
+        ▼
+Compile + Test + Security
+        │
+        ▼
+Validated candidate
+        │
+        ▼
+Extension asks developer
+        │
+        ▼
+Developer approves
+        │
+        ▼
+Patch applied locally
+        │
+        ▼
+POST /analysis/code
+        │
+        ▼
+Issue confirmed resolved
+
+---
+
+78. Complete Database Optimization Flow
+
+SQL / ORM Query
+      │
+      ▼
+POST /analysis/database
+      │
+      ▼
+Query Parser
+      │
+      ▼
+Execution Plan Analyzer
+      │
+      ▼
+Performance Rules
+      │
+      ▼
+AI Optimization
+      │
+      ▼
+Recommendations
+      │
+      ▼
+Optional Benchmark
+      │
+      ▼
+Validated Optimization
+      │
+      ▼
+IDE
+
+---
+
+79. Complete Security Flow
+
+Git Push / Manual Scan
+       │
+       ▼
+POST /security/scans
+       │
+       ▼
+Redis Queue
+       │
+       ▼
+Security Worker
+       │
+       ├── SAST
+       ├── SCA
+       ├── Secret Detection
+       └── Configuration Scan
+               │
+               ▼
+         Risk Aggregator
+               │
+               ▼
+         Security Report
+               │
+               ▼
+GET /security/reports/{project_id}
+               │
+               ▼
+            IDE
+
+---
+
+80. Complete Deployment Flow
+
+Developer requests deployment
+             │
+             ▼
+POST /deployment/validations
+             │
+             ▼
+Deployment Job
+             │
+             ├── Build
+             ├── Test
+             ├── Security
+             ├── Dependencies
+             ├── Configuration
+             ├── Container
+             └── Performance
+                     │
+                     ▼
+                Score Engine
+                     │
+             ┌───────┼────────┐
+             ▼       ▼        ▼
+           READY   REVIEW   BLOCKED
+             │       │        │
+             └───────┼────────┘
+                     ▼
+               IDE Dashboard
+
+---
+
+81. Minimum APIs Required for Hackathon Demo
+
+For the SIH/hackathon prototype, the following endpoints are sufficient to demonstrate the complete product:
+
+POST /api/v1/auth/login
+
+POST /api/v1/projects
+
+POST /api/v1/analysis/code
+
+POST /api/v1/analysis/fix
+
+POST /api/v1/analysis/fix/validate
+
+POST /api/v1/analysis/database
+
+POST /api/v1/analysis/database/optimize
+
+POST /api/v1/security/scans
+
+GET  /api/v1/security/scans/{job_id}
+
+POST /api/v1/deployment/validations
+
+GET  /api/v1/deployment/validations/{job_id}
+
+POST /api/v1/feedback
+
+GET  /api/v1/health
+
+This gives you a compact but convincing demonstration pipeline:
+
+Detect
+  ↓
+Analyze
+  ↓
+Generate
+  ↓
+Validate
+  ↓
+Optimize
+  ↓
+Secure
+  ↓
+Deploy
+
+---
+
+82. Recommended API Architecture for the Final Product
+
+                  VS CODE EXTENSION
+                         │
+                         │ HTTPS
+                         ▼
+                ┌─────────────────┐
+                │   API GATEWAY   │
+                │                 │
+                │ Auth            │
+                │ Rate Limit      │
+                │ Validation      │
+                │ Routing         │
+                └────────┬────────┘
+                         │
+       ┌─────────────────┼──────────────────────┐
+       │                 │                      │
+       ▼                 ▼                      ▼
+ Code Intelligence   DB Intelligence      Security Engine
+       │                 │                      │
+       └─────────────────┼──────────────────────┘
+                         │
+                         ▼
+                 Deployment Engine
+                         │
+                         ▼
+                   AI / ML Layer
+                         │
+                  ┌──────┴──────┐
+                  ▼             ▼
+                 LLM       Knowledge Base
+                  │             │
+                  └──────┬──────┘
+                         ▼
+                  Validation Engine
+                         │
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+          PostgreSQL    Redis     Vector DB
+              │          │          │
+              └──────────┼──────────┘
+                         ▼
+                  IDE Response
+
+---
+
+83. Final API Design Philosophy
+
+The API should enforce a strict separation between:
+
+Detection
+    ↓
+Analysis
+    ↓
+AI Recommendation
+    ↓
+Validation
+    ↓
+Developer Approval
+    ↓
+Application
+
+The most important design principle for the project is:
+
+AI generates recommendations; deterministic engines and validation mechanisms establish whether those recommendations are safe and useful.
+
+This makes the Developer Intelligence Extension more reliable than an ordinary AI code assistant and directly supports the project's three core capabilities:
+
+SELF-CORRECTING CODE
+        +
+DATABASE PERFORMANCE OPTIMIZATION
+        +
+DEPLOYMENT SECURITY & VALIDATION

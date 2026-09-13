@@ -1,0 +1,2669 @@
+DETAILED DATABASE SCHEMA
+
+Developer Intelligence Extension
+
+Database Technology
+
+Primary Database: PostgreSQL
+Cache: Redis
+Vector Storage: pgvector / Vector Database
+Object Storage: S3-compatible storage for large reports and artifacts
+
+The PostgreSQL database is the primary source of truth for structured application data.
+
+---
+
+1. DATABASE ARCHITECTURE
+
+The database is organized into the following logical domains:
+
+1. User and Access Management
+2. Project and Repository Management
+3. Code Analysis
+4. Self-Correction
+5. Database Performance
+6. Security Analysis
+7. Deployment Validation
+8. AI and Knowledge Management
+9. Feedback and Analytics
+10. Audit and System Management
+
+High-level relationship:
+
+User
+|
++--- Projects
+|
++--- Repositories
+|
++--- Analysis Jobs
+|      |
+|      +--- Findings
+|             |
+|             +--- Fixes
+|
++--- Database Analyses
+|
++--- Security Scans
+|       |
+|       +--- Security Findings
+|
++--- Deployment Validations
+|
++--- Feedback
+|
++--- Reports
+
+Knowledge Base
+|
++--- Error Patterns
++--- Fix Patterns
++--- Security Patterns
++--- Database Patterns
++--- Deployment Patterns
+
+2. ENTITY RELATIONSHIP OVERVIEW
+
+The core relationship model is:
+
+USER
+|
+| 1:N
+↓
+PROJECT
+|
++---------+------------+-------------+-------------+
+|         |            |             |
+↓         ↓            ↓             ↓
+REPOSITORY ANALYSIS_JOB DATABASE_ANALYSIS SECURITY_SCAN
+|              |             |
+↓              ↓             ↓
+FINDING      DB_FINDING    SECURITY_FINDING
+|
+↓
+FIX
+|
+↓
+FEEDBACK
+
+PROJECT
+|
+↓
+DEPLOYMENT_VALIDATION
+|
+↓
+DEPLOYMENT_CHECKS
+
+3. USERS TABLE
+
+Table: users
+
+Purpose:
+Stores developer accounts and authentication-related metadata.
+
+Columns:
+
+id
+
+- Type: UUID
+- Primary Key
+- Description: Unique user identifier
+
+email
+
+- Type: VARCHAR(255)
+- Unique
+- Not Null
+- Description: User email address
+
+name
+
+- Type: VARCHAR(100)
+- Not Null
+- Description: Display name
+
+password_hash
+
+- Type: TEXT
+- Nullable if external authentication is used
+- Description: Secure password hash
+
+role
+
+- Type: ENUM
+- Values: developer, project_owner, admin
+
+status
+
+- Type: ENUM
+- Values: active, suspended, deleted
+
+created_at
+
+- Type: TIMESTAMP WITH TIME ZONE
+
+updated_at
+
+- Type: TIMESTAMP WITH TIME ZONE
+
+last_login_at
+
+- Type: TIMESTAMP WITH TIME ZONE
+- Nullable
+
+Recommended indexes:
+
+UNIQUE(email)
+INDEX(role)
+INDEX(status)
+
+4. USER TOKENS TABLE
+
+Table: refresh_tokens
+
+Purpose:
+Stores refresh-token metadata.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+user_id
+
+- UUID
+- Foreign Key → users.id
+
+token_hash
+
+- TEXT
+- Unique
+- Not Null
+
+expires_at
+
+- TIMESTAMP WITH TIME ZONE
+
+revoked_at
+
+- TIMESTAMP WITH TIME ZONE
+- Nullable
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Security principle:
+Raw refresh tokens should not be stored in the database.
+
+5. PROJECTS TABLE
+
+Table: projects
+
+Purpose:
+Represents a developer's project/codebase.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+owner_id
+
+- UUID
+- Foreign Key → users.id
+
+name
+
+- VARCHAR(255)
+- Not Null
+
+description
+
+- TEXT
+- Nullable
+
+primary_language
+
+- VARCHAR(50)
+
+default_branch
+
+- VARCHAR(255)
+- Default: main
+
+status
+
+- ENUM
+- Values: active, archived, deleted
+
+settings
+
+- JSONB
+- Stores project-specific configuration
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+updated_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Relationships:
+
+One user can own many projects.
+
+users 1:N projects
+
+6. PROJECT MEMBERS TABLE
+
+Table: project_members
+
+Purpose:
+Supports multiple developers working on the same project.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+user_id
+
+- UUID
+- Foreign Key → users.id
+
+role
+
+- ENUM
+- Values: viewer, developer, owner
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Constraints:
+
+UNIQUE(project_id, user_id)
+
+7. REPOSITORIES TABLE
+
+Table: repositories
+
+Purpose:
+Stores Git repository information connected to a project.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+provider
+
+- ENUM
+- Values: github, gitlab, bitbucket, local
+
+repository_url
+
+- TEXT
+- Not Null
+
+repository_name
+
+- VARCHAR(255)
+
+default_branch
+
+- VARCHAR(255)
+
+access_status
+
+- ENUM
+- Values: connected, disconnected, error
+
+last_synced_at
+
+- TIMESTAMP WITH TIME ZONE
+- Nullable
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+A project may have one or more repositories depending on the implementation.
+
+8. COMMITS TABLE
+
+Table: commits
+
+Purpose:
+Stores commit metadata used for change analysis.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+repository_id
+
+- UUID
+- Foreign Key → repositories.id
+
+commit_sha
+
+- VARCHAR(64)
+- Not Null
+
+branch
+
+- VARCHAR(255)
+
+author_name
+
+- VARCHAR(255)
+
+author_email
+
+- VARCHAR(255)
+
+commit_message
+
+- TEXT
+
+committed_at
+
+- TIMESTAMP WITH TIME ZONE
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Constraint:
+
+UNIQUE(repository_id, commit_sha)
+
+9. FILE SNAPSHOTS TABLE
+
+Table: file_snapshots
+
+Purpose:
+Stores metadata for source files analyzed by the platform.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+commit_id
+
+- UUID
+- Foreign Key → commits.id
+
+file_path
+
+- TEXT
+- Not Null
+
+language
+
+- VARCHAR(50)
+
+content_hash
+
+- VARCHAR(128)
+
+size_bytes
+
+- BIGINT
+
+line_count
+
+- INTEGER
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+The actual source content does not have to be permanently stored in PostgreSQL. For privacy and cost reasons, content may remain local or be stored temporarily in object storage.
+
+10. ANALYSIS JOBS TABLE
+
+Table: analysis_jobs
+
+Purpose:
+Tracks asynchronous and synchronous analysis operations.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+requested_by
+
+- UUID
+- Foreign Key → users.id
+
+type
+
+- ENUM
+- Values:
+  code
+  database
+  security
+  deployment
+  project
+  pull_request
+
+status
+
+- ENUM
+- Values:
+  queued
+  running
+  completed
+  failed
+  cancelled
+
+priority
+
+- ENUM
+- Values:
+  low
+  normal
+  high
+  critical
+
+progress
+
+- INTEGER
+- Range: 0–100
+
+started_at
+
+- TIMESTAMP WITH TIME ZONE
+- Nullable
+
+completed_at
+
+- TIMESTAMP WITH TIME ZONE
+- Nullable
+
+error_message
+
+- TEXT
+- Nullable
+
+metadata
+
+- JSONB
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+11. ANALYSIS TARGETS TABLE
+
+Table: analysis_targets
+
+Purpose:
+Connects an analysis job to specific files, commits, or project components.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+
+file_snapshot_id
+
+- UUID
+- Foreign Key → file_snapshots.id
+- Nullable
+
+commit_id
+
+- UUID
+- Foreign Key → commits.id
+- Nullable
+
+target_type
+
+- ENUM
+- Values:
+  file
+  commit
+  repository
+  project
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+12. FINDINGS TABLE
+
+Table: findings
+
+Purpose:
+Central table for issues detected by the intelligence engine.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+file_snapshot_id
+
+- UUID
+- Foreign Key → file_snapshots.id
+- Nullable
+
+category
+
+- ENUM
+- Values:
+  bug
+  syntax
+  quality
+  performance
+  security
+  dependency
+  configuration
+  deployment
+
+subcategory
+
+- VARCHAR(100)
+
+severity
+
+- ENUM
+- Values:
+  critical
+  high
+  medium
+  low
+  info
+
+status
+
+- ENUM
+- Values:
+  open
+  acknowledged
+  resolved
+  ignored
+  false_positive
+
+title
+
+- VARCHAR(500)
+
+message
+
+- TEXT
+
+description
+
+- TEXT
+
+root_cause
+
+- TEXT
+
+recommendation
+
+- TEXT
+
+line_start
+
+- INTEGER
+- Nullable
+
+line_end
+
+- INTEGER
+- Nullable
+
+column_start
+
+- INTEGER
+- Nullable
+
+column_end
+
+- INTEGER
+- Nullable
+
+confidence
+
+- DECIMAL(5,4)
+
+rule_id
+
+- VARCHAR(100)
+- Nullable
+
+fingerprint
+
+- VARCHAR(255)
+- Used to identify duplicate findings
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+updated_at
+
+- TIMESTAMP WITH TIME ZONE
+
+13. FINDING LOCATIONS TABLE
+
+Table: finding_locations
+
+Purpose:
+Supports findings spanning multiple files or code locations.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+finding_id
+
+- UUID
+- Foreign Key → findings.id
+
+file_path
+
+- TEXT
+
+line_start
+
+- INTEGER
+
+line_end
+
+- INTEGER
+
+context_hash
+
+- VARCHAR(128)
+
+14. FIXES TABLE
+
+Table: fixes
+
+Purpose:
+Stores AI-generated or rule-generated correction candidates.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+finding_id
+
+- UUID
+- Foreign Key → findings.id
+
+generated_by
+
+- ENUM
+- Values:
+  rule_engine
+  llm
+  ml_model
+  hybrid
+
+status
+
+- ENUM
+- Values:
+  generated
+  validating
+  validated
+  rejected
+  approved
+  applied
+  rolled_back
+
+original_code
+
+- TEXT
+
+suggested_code
+
+- TEXT
+
+patch
+
+- TEXT
+
+explanation
+
+- TEXT
+
+confidence
+
+- DECIMAL(5,4)
+
+risk_score
+
+- DECIMAL(5,2)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+updated_at
+
+- TIMESTAMP WITH TIME ZONE
+
+15. FIX VALIDATIONS TABLE
+
+Table: fix_validations
+
+Purpose:
+Stores the results of validation performed on a generated fix.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+fix_id
+
+- UUID
+- Foreign Key → fixes.id
+
+syntax_status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+compile_status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+test_status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+security_status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+regression_status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+overall_status
+
+- ENUM:
+  passed
+  failed
+  warning
+
+tests_passed
+
+- INTEGER
+
+tests_failed
+
+- INTEGER
+
+validation_score
+
+- DECIMAL(5,4)
+
+error_message
+
+- TEXT
+- Nullable
+
+validated_at
+
+- TIMESTAMP WITH TIME ZONE
+
+16. CODE TEST RESULTS TABLE
+
+Table: test_results
+
+Purpose:
+Stores individual validation/test execution results.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+validation_id
+
+- UUID
+- Foreign Key → fix_validations.id
+
+test_name
+
+- VARCHAR(500)
+
+status
+
+- ENUM:
+  passed
+  failed
+  skipped
+
+duration_ms
+
+- INTEGER
+
+error_output
+
+- TEXT
+- Nullable
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+17. DATABASE ANALYSES TABLE
+
+Table: database_analyses
+
+Purpose:
+Stores database performance analysis requests.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+- Nullable
+
+database_type
+
+- ENUM:
+  postgresql
+  mysql
+  sqlite
+  mongodb
+
+database_version
+
+- VARCHAR(50)
+
+query_hash
+
+- VARCHAR(128)
+
+query_text
+
+- TEXT
+
+schema_snapshot
+
+- JSONB
+
+execution_plan
+
+- JSONB
+
+execution_time_ms
+
+- DECIMAL(12,3)
+
+rows_scanned
+
+- BIGINT
+
+rows_returned
+
+- BIGINT
+
+performance_score
+
+- DECIMAL(5,2)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+18. DATABASE FINDINGS TABLE
+
+Table: database_findings
+
+Purpose:
+Stores database-specific optimization findings.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+database_analysis_id
+
+- UUID
+- Foreign Key → database_analyses.id
+
+type
+
+- ENUM:
+  missing_index
+  unused_index
+  full_table_scan
+  inefficient_join
+  n_plus_one
+  expensive_sort
+  inefficient_query
+  excessive_columns
+  poor_pagination
+  repeated_query
+
+severity
+
+- ENUM:
+  critical
+  high
+  medium
+  low
+  info
+
+message
+
+- TEXT
+
+root_cause
+
+- TEXT
+
+recommendation
+
+- TEXT
+
+confidence
+
+- DECIMAL(5,4)
+
+estimated_cost
+
+- DECIMAL(15,4)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+19. DATABASE RECOMMENDATIONS TABLE
+
+Table: database_recommendations
+
+Purpose:
+Stores generated query/index optimization recommendations.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+database_analysis_id
+
+- UUID
+- Foreign Key → database_analyses.id
+
+database_finding_id
+
+- UUID
+- Foreign Key → database_findings.id
+- Nullable
+
+recommendation_type
+
+- ENUM:
+  query
+  index
+  schema
+  orm
+  pagination
+
+original_query
+
+- TEXT
+
+optimized_query
+
+- TEXT
+- Nullable
+
+index_definition
+
+- TEXT
+- Nullable
+
+priority
+
+- ENUM:
+  critical
+  high
+  medium
+  low
+
+confidence
+
+- DECIMAL(5,4)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+20. DATABASE BENCHMARKS TABLE
+
+Table: database_benchmarks
+
+Purpose:
+Stores actual benchmark comparisons.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+database_analysis_id
+
+- UUID
+- Foreign Key → database_analyses.id
+
+original_execution_ms
+
+- DECIMAL(12,3)
+
+optimized_execution_ms
+
+- DECIMAL(12,3)
+
+original_rows
+
+- BIGINT
+
+optimized_rows
+
+- BIGINT
+
+iterations
+
+- INTEGER
+
+improvement_percent
+
+- DECIMAL(8,3)
+
+environment_metadata
+
+- JSONB
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Performance improvement should be calculated only from measured benchmark results.
+
+21. SECURITY SCANS TABLE
+
+Table: security_scans
+
+Purpose:
+Tracks security scanning jobs.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+
+commit_id
+
+- UUID
+- Foreign Key → commits.id
+- Nullable
+
+scan_status
+
+- ENUM:
+  queued
+  running
+  completed
+  failed
+
+security_score
+
+- DECIMAL(5,2)
+
+critical_count
+
+- INTEGER
+
+high_count
+
+- INTEGER
+
+medium_count
+
+- INTEGER
+
+low_count
+
+- INTEGER
+
+info_count
+
+- INTEGER
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+completed_at
+
+- TIMESTAMP WITH TIME ZONE
+
+22. SECURITY FINDINGS TABLE
+
+Table: security_findings
+
+Purpose:
+Stores vulnerabilities and security issues detected by the system.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+security_scan_id
+
+- UUID
+- Foreign Key → security_scans.id
+
+finding_id
+
+- UUID
+- Foreign Key → findings.id
+- Nullable
+
+security_type
+
+- ENUM:
+  sast
+  dependency
+  secret
+  configuration
+  container
+  infrastructure
+
+rule_id
+
+- VARCHAR(100)
+
+severity
+
+- ENUM:
+  critical
+  high
+  medium
+  low
+  info
+
+title
+
+- VARCHAR(500)
+
+description
+
+- TEXT
+
+remediation
+
+- TEXT
+
+file_path
+
+- TEXT
+- Nullable
+
+line_number
+
+- INTEGER
+- Nullable
+
+package_name
+
+- VARCHAR(255)
+- Nullable
+
+package_version
+
+- VARCHAR(100)
+- Nullable
+
+cve_id
+
+- VARCHAR(50)
+- Nullable
+
+confidence
+
+- DECIMAL(5,4)
+
+status
+
+- ENUM:
+  open
+  fixed
+  ignored
+  false_positive
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+23. DEPENDENCIES TABLE
+
+Table: dependencies
+
+Purpose:
+Stores project dependency metadata.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+name
+
+- VARCHAR(255)
+
+version
+
+- VARCHAR(100)
+
+ecosystem
+
+- VARCHAR(50)
+
+manifest_file
+
+- VARCHAR(500)
+
+direct_dependency
+
+- BOOLEAN
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+24. VULNERABILITIES TABLE
+
+Table: vulnerabilities
+
+Purpose:
+Stores normalized vulnerability information.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+dependency_id
+
+- UUID
+- Foreign Key → dependencies.id
+
+vulnerability_id
+
+- VARCHAR(100)
+
+cve_id
+
+- VARCHAR(50)
+- Nullable
+
+severity
+
+- VARCHAR(50)
+
+description
+
+- TEXT
+
+affected_versions
+
+- TEXT
+
+fixed_version
+
+- VARCHAR(100)
+- Nullable
+
+source
+
+- VARCHAR(100)
+
+published_at
+
+- TIMESTAMP WITH TIME ZONE
+- Nullable
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+25. SECRETS DETECTIONS TABLE
+
+Table: secret_detections
+
+Purpose:
+Stores metadata about detected credentials without storing the actual secret.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+security_scan_id
+
+- UUID
+- Foreign Key → security_scans.id
+
+secret_type
+
+- VARCHAR(100)
+
+file_path
+
+- TEXT
+
+line_number
+
+- INTEGER
+
+fingerprint
+
+- VARCHAR(128)
+
+confidence
+
+- DECIMAL(5,4)
+
+status
+
+- ENUM:
+  detected
+  revoked
+  resolved
+  false_positive
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Important:
+The actual secret value must not be stored.
+
+26. DEPLOYMENT VALIDATIONS TABLE
+
+Table: deployment_validations
+
+Purpose:
+Stores deployment-readiness assessments.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+commit_id
+
+- UUID
+- Foreign Key → commits.id
+
+requested_by
+
+- UUID
+- Foreign Key → users.id
+
+environment
+
+- ENUM:
+  development
+  staging
+  production
+
+status
+
+- ENUM:
+  queued
+  running
+  completed
+  failed
+
+readiness_score
+
+- DECIMAL(5,2)
+
+decision
+
+- ENUM:
+  ready
+  review
+  blocked
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+completed_at
+
+- TIMESTAMP WITH TIME ZONE
+
+27. DEPLOYMENT CHECKS TABLE
+
+Table: deployment_checks
+
+Purpose:
+Stores individual deployment validation checks.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+deployment_validation_id
+
+- UUID
+- Foreign Key → deployment_validations.id
+
+check_type
+
+- ENUM:
+  build
+  tests
+  security
+  dependencies
+  configuration
+  container
+  performance
+
+status
+
+- ENUM:
+  passed
+  warning
+  failed
+
+score
+
+- DECIMAL(5,2)
+
+message
+
+- TEXT
+
+details
+
+- JSONB
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+28. DEPLOYMENT BLOCKERS TABLE
+
+Table: deployment_blockers
+
+Purpose:
+Stores issues that explicitly prevent deployment.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+deployment_validation_id
+
+- UUID
+- Foreign Key → deployment_validations.id
+
+source_type
+
+- ENUM:
+  security
+  test
+  build
+  dependency
+  configuration
+  performance
+
+source_id
+
+- UUID
+- Nullable
+
+severity
+
+- ENUM:
+  critical
+  high
+
+message
+
+- TEXT
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+29. AI MODEL RUNS TABLE
+
+Table: ai_model_runs
+
+Purpose:
+Tracks AI inference operations without unnecessarily storing sensitive prompts.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+- Nullable
+
+model_provider
+
+- VARCHAR(100)
+
+model_name
+
+- VARCHAR(100)
+
+task_type
+
+- ENUM:
+  explanation
+  code_fix
+  database_optimization
+  security_remediation
+  ranking
+  summarization
+
+input_hash
+
+- VARCHAR(128)
+
+output_hash
+
+- VARCHAR(128)
+
+latency_ms
+
+- INTEGER
+
+token_usage
+
+- JSONB
+- Nullable
+
+confidence
+
+- DECIMAL(5,4)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+30. KNOWLEDGE BASE TABLE
+
+Table: knowledge_items
+
+Purpose:
+Stores reusable engineering knowledge.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+category
+
+- ENUM:
+  error_pattern
+  fix_pattern
+  database_pattern
+  security_pattern
+  deployment_pattern
+
+title
+
+- VARCHAR(500)
+
+description
+
+- TEXT
+
+content
+
+- TEXT
+
+source
+
+- VARCHAR(255)
+
+version
+
+- VARCHAR(50)
+
+confidence
+
+- DECIMAL(5,4)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+updated_at
+
+- TIMESTAMP WITH TIME ZONE
+
+31. KNOWLEDGE EMBEDDINGS
+
+Table: knowledge_embeddings
+
+Purpose:
+Stores vector representations for semantic retrieval.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+knowledge_item_id
+
+- UUID
+- Foreign Key → knowledge_items.id
+
+embedding
+
+- VECTOR
+
+model_name
+
+- VARCHAR(100)
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Recommended index:
+Approximate nearest-neighbor index supported by the chosen vector database/pgvector configuration.
+
+32. FEEDBACK TABLE
+
+Table: feedback
+
+Purpose:
+Captures developer interaction with recommendations.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+user_id
+
+- UUID
+- Foreign Key → users.id
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+finding_id
+
+- UUID
+- Foreign Key → findings.id
+- Nullable
+
+fix_id
+
+- UUID
+- Foreign Key → fixes.id
+- Nullable
+
+action
+
+- ENUM:
+  accepted
+  rejected
+  modified
+  ignored
+  false_positive
+
+rating
+
+- INTEGER
+- Optional 1–5
+
+comment
+
+- TEXT
+- Nullable
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+33. ANALYSIS REPORTS TABLE
+
+Table: reports
+
+Purpose:
+Stores generated summaries and references to large reports.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+
+analysis_job_id
+
+- UUID
+- Foreign Key → analysis_jobs.id
+
+report_type
+
+- ENUM:
+  code
+  security
+  database
+  deployment
+  combined
+
+storage_path
+
+- TEXT
+- Nullable
+
+summary
+
+- JSONB
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+34. AUDIT LOG TABLE
+
+Table: audit_logs
+
+Purpose:
+Tracks important security and administrative actions.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+user_id
+
+- UUID
+- Foreign Key → users.id
+- Nullable
+
+project_id
+
+- UUID
+- Foreign Key → projects.id
+- Nullable
+
+action
+
+- VARCHAR(100)
+
+resource_type
+
+- VARCHAR(100)
+
+resource_id
+
+- UUID
+- Nullable
+
+request_id
+
+- VARCHAR(100)
+
+metadata
+
+- JSONB
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+Sensitive source code, passwords, tokens, and secret values must not be written into audit logs.
+
+35. API REQUEST LOGS TABLE
+
+Table: api_request_logs
+
+Purpose:
+Stores operational API telemetry.
+
+Columns:
+
+id
+
+- UUID
+- Primary Key
+
+request_id
+
+- VARCHAR(100)
+
+user_id
+
+- UUID
+- Nullable
+
+endpoint
+
+- VARCHAR(255)
+
+http_method
+
+- VARCHAR(10)
+
+status_code
+
+- INTEGER
+
+latency_ms
+
+- INTEGER
+
+created_at
+
+- TIMESTAMP WITH TIME ZONE
+
+High-volume operational logs may be better handled by a dedicated logging system instead of PostgreSQL.
+
+36. ENUM DEFINITIONS
+
+Recommended enums include:
+
+USER_ROLE:
+developer
+project_owner
+admin
+
+PROJECT_STATUS:
+active
+archived
+deleted
+
+JOB_STATUS:
+queued
+running
+completed
+failed
+cancelled
+
+FINDING_SEVERITY:
+critical
+high
+medium
+low
+info
+
+FINDING_STATUS:
+open
+acknowledged
+resolved
+ignored
+false_positive
+
+FIX_STATUS:
+generated
+validating
+validated
+rejected
+approved
+applied
+rolled_back
+
+SECURITY_TYPE:
+sast
+dependency
+secret
+configuration
+container
+infrastructure
+
+DEPLOYMENT_DECISION:
+ready
+review
+blocked
+
+37. PRIMARY RELATIONSHIPS
+
+USER → PROJECT
+
+One user can own multiple projects.
+
+users.id
+↓
+projects.owner_id
+
+PROJECT → REPOSITORY
+
+One project can have one or multiple repositories.
+
+projects.id
+↓
+repositories.project_id
+
+PROJECT → ANALYSIS JOB
+
+One project can have many analysis jobs.
+
+projects.id
+↓
+analysis_jobs.project_id
+
+ANALYSIS JOB → FINDINGS
+
+One analysis job can generate many findings.
+
+analysis_jobs.id
+↓
+findings.analysis_job_id
+
+FINDING → FIX
+
+One finding can have multiple candidate fixes.
+
+findings.id
+↓
+fixes.finding_id
+
+FIX → VALIDATION
+
+One fix can have multiple validation attempts.
+
+fixes.id
+↓
+fix_validations.fix_id
+
+DATABASE ANALYSIS → DATABASE FINDINGS
+
+database_analyses.id
+↓
+database_findings.database_analysis_id
+
+DATABASE ANALYSIS → RECOMMENDATIONS
+
+database_analyses.id
+↓
+database_recommendations.database_analysis_id
+
+SECURITY SCAN → SECURITY FINDINGS
+
+security_scans.id
+↓
+security_findings.security_scan_id
+
+DEPLOYMENT VALIDATION → DEPLOYMENT CHECKS
+
+deployment_validations.id
+↓
+deployment_checks.deployment_validation_id
+
+PROJECT → FEEDBACK
+
+projects.id
+↓
+feedback.project_id
+
+38. COMPLETE ER DIAGRAM
+
+USER
+│
+│ 1:N
+▼
+PROJECT
+│
+├─────────────── 1:N ───────────────► REPOSITORY
+│                                      │
+│                                      ▼
+│                                   COMMITS
+│
+├─────────────── 1:N ───────────────► ANALYSIS_JOB
+│                                      │
+│                                      ▼
+│                                   FINDINGS
+│                                      │
+│                                      ▼
+│                                    FIXES
+│                                      │
+│                                      ▼
+│                                FIX_VALIDATIONS
+│
+├─────────────── 1:N ───────────────► DATABASE_ANALYSIS
+│                                      │
+│                                      ├── DATABASE_FINDINGS
+│                                      │
+│                                      ├── DATABASE_RECOMMENDATIONS
+│                                      │
+│                                      └── DATABASE_BENCHMARKS
+│
+├─────────────── 1:N ───────────────► SECURITY_SCAN
+│                                      │
+│                                      ├── SECURITY_FINDINGS
+│                                      ├── SECRET_DETECTIONS
+│                                      └── DEPENDENCIES
+│                                               │
+│                                               ▼
+│                                        VULNERABILITIES
+│
+├─────────────── 1:N ───────────────► DEPLOYMENT_VALIDATION
+│                                      │
+│                                      ├── DEPLOYMENT_CHECKS
+│                                      └── DEPLOYMENT_BLOCKERS
+│
+├─────────────── 1:N ───────────────► FEEDBACK
+│
+└─────────────── 1:N ───────────────► REPORTS
+
+39. INDEXING STRATEGY
+
+Important indexes:
+
+users:
+
+- UNIQUE(email)
+- INDEX(role)
+
+projects:
+
+- INDEX(owner_id)
+- INDEX(status)
+
+repositories:
+
+- INDEX(project_id)
+
+commits:
+
+- UNIQUE(repository_id, commit_sha)
+- INDEX(branch)
+- INDEX(committed_at)
+
+analysis_jobs:
+
+- INDEX(project_id)
+- INDEX(status)
+- INDEX(type)
+- INDEX(created_at)
+
+findings:
+
+- INDEX(project_id)
+- INDEX(analysis_job_id)
+- INDEX(severity)
+- INDEX(category)
+- INDEX(status)
+- INDEX(fingerprint)
+
+fixes:
+
+- INDEX(finding_id)
+- INDEX(status)
+
+database_analyses:
+
+- INDEX(project_id)
+- INDEX(query_hash)
+- INDEX(created_at)
+
+security_scans:
+
+- INDEX(project_id)
+- INDEX(commit_id)
+- INDEX(scan_status)
+
+security_findings:
+
+- INDEX(security_scan_id)
+- INDEX(severity)
+- INDEX(status)
+- INDEX(cve_id)
+
+deployment_validations:
+
+- INDEX(project_id)
+- INDEX(commit_id)
+- INDEX(decision)
+- INDEX(created_at)
+
+feedback:
+
+- INDEX(project_id)
+- INDEX(user_id)
+- INDEX(action)
+
+40. JSONB USAGE
+
+JSONB should be used only for flexible or semi-structured information.
+
+Good candidates:
+
+projects.settings
+analysis_jobs.metadata
+database_analyses.schema_snapshot
+deployment_checks.details
+ai_model_runs.token_usage
+knowledge_items.metadata
+reports.summary
+audit_logs.metadata
+
+Core relational fields such as user IDs, project IDs, severity, status, and timestamps should remain strongly typed relational columns.
+
+41. SOURCE CODE STORAGE STRATEGY
+
+The database should NOT permanently store every source-code file by default.
+
+Recommended architecture:
+
+Developer Machine
+|
++-- Local source code
+|
++-- Context extraction
+|
++-- Sensitive data filtering
+|
+↓
+Backend
+|
++-- Temporary analysis context
+|
++-- Hash / metadata → PostgreSQL
+|
++-- Large reports → Object Storage
+
+This minimizes exposure of proprietary source code.
+
+42. DATA RETENTION
+
+Recommended retention policy:
+
+User account data:
+Long-term
+
+Project metadata:
+Until project deletion
+
+Analysis results:
+Configurable retention
+
+Temporary analysis context:
+Short-lived
+
+AI request context:
+Minimum possible retention
+
+Security reports:
+Longer retention for audit purposes
+
+Audit logs:
+Long-term according to organizational policy
+
+Sensitive source content:
+Avoid permanent storage where possible
+
+43. DATABASE SECURITY
+
+PostgreSQL should implement:
+
+• TLS connections
+• Encryption at rest where supported
+• Least-privilege database users
+• Separate application and administrative roles
+• Prepared statements
+• Parameterized queries
+• Database backups
+• Access logging
+• Migration versioning
+
+Credentials must be stored outside the source code.
+
+44. DATABASE BACKUP
+
+Recommended backup strategy:
+
+Primary PostgreSQL
+↓
+Automated Backup
+↓
+Encrypted Backup Storage
+↓
+Point-in-Time Recovery
+
+For production:
+
+• Automated daily backups
+• Transaction/WAL retention
+• Periodic restore testing
+• Backup encryption
+
+45. MULTI-TENANCY
+
+The database should be designed so that users cannot access another user's project data.
+
+Every project-owned entity should ultimately be associated with a project.
+
+Example:
+
+PROJECT
+↓
+ANALYSIS_JOB
+↓
+FINDING
+
+Authorization check:
+
+Authenticated User
+↓
+Project Membership
+↓
+Resource Access
+
+46. DATA CONSISTENCY
+
+Foreign-key constraints should be used wherever possible.
+
+Recommended deletion behavior:
+
+User
+→ Projects may be archived rather than immediately deleted
+
+Project
+→ Child analysis records can use controlled cascading or archival
+
+Finding
+→ Fixes should normally remain for historical auditability
+
+Security findings
+→ Prefer status changes over physical deletion
+
+47. DATABASE MIGRATION
+
+Use a migration system such as:
+
+Alembic
+
+Migration flow:
+
+Initial Schema
+↓
+Migration 001
+↓
+Migration 002
+↓
+Migration 003
+↓
+Current Schema
+
+Every schema change should be version controlled.
+
+48. DEVELOPMENT DATABASE
+
+For local development:
+
+PostgreSQL
+Redis
+pgvector
+
+Recommended Docker setup:
+
+docker-compose
+|
++-- PostgreSQL
++-- Redis
++-- Backend
++-- Worker
++-- Vector storage
+
+49. HACKATHON MVP DATABASE
+
+For the SIH/hackathon prototype, the full production schema can be simplified.
+
+Minimum tables:
+
+users
+projects
+repositories
+analysis_jobs
+findings
+fixes
+fix_validations
+database_analyses
+database_findings
+security_scans
+security_findings
+deployment_validations
+deployment_checks
+feedback
+
+This is sufficient to demonstrate the complete product lifecycle.
+
+50. MVP DATA FLOW
+
+Developer
+↓
+IDE Extension
+↓
+Project
+↓
+Analysis Job
+↓
+Finding
+↓
+Fix
+↓
+Fix Validation
+↓
+Database Analysis
+↓
+Security Scan
+↓
+Deployment Validation
+↓
+Final Report
+
+51. EXAMPLE END-TO-END RECORD RELATIONSHIP
+
+Example:
+
+User:
+usr_001
+
+Project:
+proj_001
+
+Commit:
+abc123
+
+Analysis:
+analysis_001
+
+Finding:
+finding_001
+
+Fix:
+fix_001
+
+Validation:
+validation_001
+
+Security Scan:
+security_001
+
+Deployment:
+deploy_001
+
+This allows the complete development event to be traced from:
+
+Developer
+→ Project
+→ Commit
+→ Problem
+→ Fix
+→ Validation
+→ Security
+→ Deployment
+
+52. FINAL DATABASE DESIGN
+
+The final architecture can be summarized as:
+
+              USER
+               |
+               ↓
+            PROJECT
+               |
+   +-----------+-----------+
+   |           |           |
+   ↓           ↓           ↓
+
+REPOSITORY   ANALYSIS    SECURITY
+|           |           |
+COMMITS     FINDINGS     FINDINGS
+|
+↓
+FIXES
+|
+↓
+VALIDATIONS
+
+PROJECT
+|
++------ DATABASE ANALYSIS
+|              |
+|              +-- FINDINGS
+|              +-- RECOMMENDATIONS
+|              +-- BENCHMARKS
+|
++------ DEPLOYMENT VALIDATION
+|              |
+|              +-- CHECKS
+|              +-- BLOCKERS
+|
++------ FEEDBACK
+|
++------ REPORTS
+
+KNOWLEDGE BASE
+|
++-- Error Patterns
++-- Fix Patterns
++-- Security Patterns
++-- Database Patterns
++-- Deployment Patterns
+|
+↓
+VECTOR EMBEDDINGS
+
+53. DATABASE DESIGN OBJECTIVE
+
+The database is designed to provide:
+
+1. Traceability
+   Every recommendation can be traced back to the project, commit, analysis, and finding that generated it.
+
+2. Reliability
+   Validation results are stored separately from AI-generated recommendations.
+
+3. Security
+   Secrets and sensitive source code are not unnecessarily persisted.
+
+4. Scalability
+   Heavy operations use asynchronous jobs and Redis-backed workers while PostgreSQL remains the structured source of truth.
+
+5. Intelligence
+   Historical findings, fixes, feedback, and knowledge patterns can be reused by the AI and recommendation engines.
+
+6. Explainability
+   The platform can explain how a final recommendation was generated and validated.
+
+The resulting database architecture supports the complete Developer Intelligence workflow:
+
+CODE
+→ ANALYZE
+→ DETECT
+→ FIX
+→ VALIDATE
+→ OPTIMIZE
+→ SECURE
+→ TEST
+→ DEPLOY
+→ LEARN

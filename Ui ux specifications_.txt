@@ -1,0 +1,1412 @@
+UI/UX SPECIFICATIONS
+
+Developer Intelligence Extension
+
+1. UI/UX OVERVIEW
+
+The Developer Intelligence Extension provides an IDE-native interface for code intelligence, automated code correction, database performance optimization, security analysis, and deployment validation.
+
+The UI is designed to keep developers inside their existing development environment while providing actionable insights.
+
+Core UX workflow:
+
+Detect → Explain → Suggest → Validate → Approve → Apply
+
+Primary UI/UX objectives:
+
+• Provide real-time developer feedback.
+• Detect code issues directly inside the IDE.
+• Explain the root cause of detected problems.
+• Generate safe and contextual fixes.
+• Validate generated fixes before application.
+• Detect database performance bottlenecks.
+• Identify security vulnerabilities and exposed secrets.
+• Validate deployment readiness.
+• Provide clear project health and risk scores.
+• Keep developers in control of automated changes.
+
+2. DESIGN PRINCIPLES
+
+2.1 Developer First
+
+The interface should be designed around the developer's existing workflow instead of requiring developers to switch between multiple applications.
+
+2.2 Minimal Distraction
+
+Only important issues should generate notifications. Low-priority findings should remain available inside the Issues panel.
+
+2.3 Actionable Information
+
+Every important finding should provide an appropriate action:
+
+• Explain
+• Fix
+• Optimize
+• Validate
+• Ignore
+• View Details
+
+2.4 Transparency
+
+AI-generated recommendations should clearly display:
+
+• Reason for recommendation
+• Confidence
+• Risk level
+• Validation status
+• Expected impact
+
+2.5 Human Control
+
+The system should not automatically modify important code without developer approval.
+
+Recommended workflow:
+
+Suggestion → Preview → Validation → Approval → Apply
+
+3. DESIGN SYSTEM
+
+3.1 Theme
+
+The extension should support:
+
+• Dark Mode
+• Light Mode
+• High Contrast Mode
+
+The extension should inherit the active IDE theme wherever possible.
+
+3.2 Semantic Colors
+
+Critical → Red
+
+High → Orange/Red
+
+Medium → Yellow/Amber
+
+Low → Blue
+
+Information → Neutral/Gray
+
+Success → Green
+
+Warning → Amber
+
+Colors should communicate meaning and should never be the only indicator of severity.
+
+3.3 Typography
+
+The extension should use the IDE's default UI font.
+
+Code should use a monospace font.
+
+Recommended hierarchy:
+
+• Dashboard Title
+• Section Heading
+• Finding Title
+• Description
+• Metadata
+• Secondary Information
+
+4. MAIN UI STRUCTURE
+
+The extension should integrate with VS Code or a similar IDE.
+
+Primary structure:
+
+IDE
+│
+├── Activity Bar
+│     └── Developer Intelligence
+│
+├── Sidebar
+│     ├── Overview
+│     ├── Issues
+│     ├── Security
+│     ├── Database
+│     └── Deployment
+│
+├── Code Editor
+│     ├── Inline Diagnostics
+│     ├── Code Actions
+│     └── Fix Suggestions
+│
+└── Dashboard
+├── Project Health
+├── Analysis
+├── Security
+├── Database
+└── Deployment
+
+5. ACTIVITY BAR
+
+A dedicated Developer Intelligence icon should be added to the IDE Activity Bar.
+
+Example:
+
+Explorer
+Search
+Source Control
+Run
+Extensions
+Developer Intelligence
+
+Selecting the icon opens the Developer Intelligence Sidebar.
+
+6. SIDEBAR
+
+The Sidebar acts as the primary navigation system.
+
+Developer Intelligence
+
+PROJECT
+• Overview
+• Issues
+• Analysis History
+
+CODE
+• Code Issues
+• Fix Suggestions
+
+DATABASE
+• Performance
+• Slow Queries
+• Recommendations
+
+SECURITY
+• Vulnerabilities
+• Secrets
+• Dependencies
+
+DEPLOYMENT
+• Readiness
+• Validation
+• Reports
+
+The navigation should remain simple and avoid excessive nesting.
+
+7. PROJECT OVERVIEW
+
+The Project Overview provides a high-level summary of project health.
+
+Example:
+
+Developer Intelligence
+
+PROJECT HEALTH
+
+87 / 100
+
+Code Quality       88
+Security           92
+Performance        79
+Dependencies       94
+Testing             82
+Deployment          87
+
+Open Issues         12
+Security Issues      3
+DB Recommendations   5
+
+[Run Full Analysis]
+
+8. HEALTH SCORE
+
+The system may provide individual health scores for:
+
+• Code Quality
+• Security
+• Performance
+• Dependencies
+• Testing
+• Deployment
+
+A combined Project Health score can be displayed.
+
+Example:
+
+Project Health
+
+87 / 100
+
+The score should always be accompanied by supporting metrics so that developers understand why the score was generated.
+
+9. CODE EDITOR EXPERIENCE
+
+Code analysis should integrate directly into the editor.
+
+Example:
+
+42 | user = get_user(id)
+43 |
+44 | print(user.name)
+└── Potential null reference
+
+Hovering over the issue should display:
+
+Potential Null Reference
+
+The returned object may be undefined.
+
+Severity: Medium
+Confidence: 94%
+
+[Quick Fix]
+[Explain]
+[Ignore]
+[View Details]
+
+10. INLINE DIAGNOSTICS
+
+The extension should use the IDE's native diagnostic system.
+
+Diagnostic categories:
+
+• Error
+• Warning
+• Suggestion
+• Information
+
+Each diagnostic should contain:
+
+• Issue title
+• Severity
+• Location
+• Description
+• Confidence
+• Available actions
+
+11. QUICK FIX
+
+When the developer selects Quick Fix:
+
+Potential Null Reference
+
+Suggested Fix:
+
+Add a null check before accessing user.name.
+
+Confidence: 94%
+
+Risk: Low
+
+[Preview Fix]
+[Apply Fix]
+[Explain]
+[Cancel]
+
+The system should display the proposed modification before applying it.
+
+12. FIX PREVIEW
+
+The extension should provide a standard diff view.
+
+BEFORE:
+
+user = get_user(id)
+print(user.name)
+
+AFTER:
+
+user = get_user(id)
+
+if user:
+print(user.name)
+
+Available actions:
+
+[Apply]
+[Reject]
+[Modify]
+
+Native IDE diff functionality should be used wherever possible.
+
+13. FIX VALIDATION
+
+Every AI-generated fix should preferably go through automated validation.
+
+Validation stages:
+
+• Syntax Validation
+• Compilation
+• Unit Tests
+• Integration Tests
+• Security Validation
+• Regression Validation
+
+Example:
+
+Suggested Fix
+
+✓ Syntax
+✓ Compile
+✓ Tests
+✓ Security
+✓ Regression
+
+Validation Score: 96%
+
+[Apply Fix]
+
+If the fix has not been validated:
+
+Validation: NOT VERIFIED
+
+14. AI EXPLANATION PANEL
+
+AI explanations should be structured and concise.
+
+Example:
+
+WHY IS THIS A PROBLEM?
+
+The function can return None when the database lookup fails.
+
+WHY DOES IT MATTER?
+
+Accessing user.name may cause a runtime error.
+
+RECOMMENDED APPROACH
+
+Check the returned object before accessing it.
+
+CONFIDENCE
+
+94%
+
+The explanation should avoid unnecessary technical jargon.
+
+15. MULTIPLE FIX OPTIONS
+
+For complex problems, the system may provide multiple solutions.
+
+Possible Fixes:
+
+1. Null Check
+   Confidence: 94%
+   Risk: Low
+
+2. Exception Handling
+   Confidence: 86%
+   Risk: Medium
+
+3. Function Refactoring
+   Confidence: 78%
+   Risk: Medium
+
+[Compare Solutions]
+
+The safest validated solution should normally appear first.
+
+16. ISSUES PANEL
+
+The Issues Panel consolidates all detected problems.
+
+Example:
+
+ISSUES
+
+12 Open Issues
+
+[CRITICAL] SQL Injection
+src/database.py:42
+
+[HIGH] Null Reference
+src/user.py:87
+
+[MEDIUM] High Complexity
+src/payment.py:120
+
+[LOW] Duplicate Code
+src/utils.py:18
+
+Filters:
+
+• Severity
+• Category
+• File
+• Status
+• Confidence
+
+17. ISSUE DETAILS
+
+Selecting an issue should open a detailed view.
+
+SQL Injection
+
+Severity: CRITICAL
+
+Location:
+src/database.py:42
+
+Problem:
+
+User input is directly inserted into an SQL query.
+
+Root Cause:
+
+Query construction uses string concatenation.
+
+Recommendation:
+
+Use parameterized queries.
+
+Confidence:
+
+97%
+
+Actions:
+
+[View Code]
+[Generate Fix]
+[Mark Resolved]
+[Ignore]
+
+18. DATABASE PERFORMANCE DASHBOARD
+
+The Database section focuses on query performance and optimization.
+
+Example:
+
+DATABASE PERFORMANCE
+
+Overall Score: 72 / 100
+
+Slow Queries:
+
+1. user_lookup
+   340 ms
+   High Impact
+
+2. order_search
+   210 ms
+   Medium Impact
+
+3. dashboard_query
+   184 ms
+   Medium Impact
+
+[Analyze Database]
+
+19. QUERY PERFORMANCE DETAILS
+
+Selecting a query displays:
+
+QUERY PERFORMANCE
+
+Execution Time:
+340 ms
+
+Rows Scanned:
+120,000
+
+Rows Returned:
+1
+
+Index Usage:
+Not Used
+
+Performance Risk:
+HIGH
+
+Recommendation:
+
+Create an index supporting the email lookup.
+
+[View Index]
+[Optimize Query]
+[Benchmark]
+
+20. QUERY OPTIMIZATION
+
+The system should show the original query and optimized query.
+
+ORIGINAL QUERY
+
+SELECT *
+FROM users
+WHERE email = $1;
+
+OPTIMIZED QUERY
+
+SELECT id, name, email
+FROM users
+WHERE email = $1;
+
+Performance:
+
+Original: 340 ms
+Optimized: 71 ms
+
+Measured Improvement: 79.1%
+
+Performance improvement should only be displayed when supported by actual benchmark measurements.
+
+21. DATABASE INDEX RECOMMENDATION
+
+Example:
+
+INDEX RECOMMENDATION
+
+Table:
+
+users
+
+Column:
+
+email
+
+Reason:
+
+Frequent filtering operation without a suitable index.
+
+Priority:
+
+HIGH
+
+Actions:
+
+[Create Migration]
+[Copy SQL]
+[Dismiss]
+
+The extension should not automatically modify production database schemas.
+
+22. SECURITY DASHBOARD
+
+The Security Dashboard provides an overview of the project's security posture.
+
+SECURITY
+
+Security Score:
+
+92 / 100
+
+Critical: 0
+High: 2
+Medium: 4
+Low: 7
+
+Latest Scan:
+
+2 minutes ago
+
+[Run Security Scan]
+[View Report]
+
+23. SECURITY FINDING
+
+Example:
+
+SECURITY FINDING
+
+CRITICAL
+
+Potential SQL Injection
+
+File:
+
+src/database.py
+
+Line:
+
+42
+
+Category:
+
+SAST
+
+Confidence:
+
+97%
+
+Actions:
+
+[View Code]
+[Generate Fix]
+[Mark Resolved]
+
+24. SECRET DETECTION
+
+The system should detect possible API keys, passwords, tokens, and other secrets.
+
+Example:
+
+POTENTIAL SECRET DETECTED
+
+File:
+
+config.py
+
+Line:
+
+18
+
+Type:
+
+API Key
+
+Detected Value:
+
+---
+
+Severity:
+
+CRITICAL
+
+Recommendation:
+
+Remove the secret and use secure environment configuration.
+
+Actions:
+
+[Open File]
+[Mark Resolved]
+
+The complete secret value must never be displayed in the UI.
+
+25. DEPENDENCY SECURITY
+
+The Dependency Security interface should show vulnerable dependencies.
+
+Example:
+
+DEPENDENCIES
+
+48 Total Dependencies
+
+3 Vulnerable
+
+package-name
+
+Current Version:
+1.2.0
+
+Severity:
+HIGH
+
+Recommended Version:
+1.3.2
+
+Actions:
+
+[View Vulnerability]
+[Show Upgrade]
+
+26. DEPLOYMENT DASHBOARD
+
+Deployment validation should provide a simple release-readiness view.
+
+DEPLOYMENT READINESS
+
+87 / 100
+
+REVIEW
+
+✓ Build
+✓ Tests
+✓ Dependencies
+⚠ Performance
+✓ Configuration
+⚠ Security
+
+2 Warnings
+0 Blockers
+
+[Run Validation]
+[View Report]
+
+27. DEPLOYMENT STATUS
+
+The system should use three primary deployment states.
+
+READY
+
+All required checks passed.
+
+REVIEW
+
+Warnings exist and developer review is recommended.
+
+BLOCKED
+
+A release-blocking issue has been detected.
+
+Example:
+
+DEPLOYMENT BLOCKED
+
+Critical security vulnerability detected.
+
+File:
+
+src/auth.py
+
+Actions:
+
+[View Issue]
+[Return to Code]
+
+28. DEPLOYMENT REPORT
+
+Deployment Validation Report
+
+Overall Score: 87
+
+Code Quality: 88
+Security: 91
+Testing: 82
+Dependencies: 94
+Configuration: 90
+Performance: 78
+
+Blocking Issues: 0
+Warnings: 2
+
+Decision:
+
+REVIEW
+
+29. ANALYSIS PROGRESS
+
+Long-running analysis tasks should display progress.
+
+Example:
+
+PROJECT ANALYSIS
+
+72% Complete
+
+Analyzing:
+Security Dependencies
+
+Completed:
+
+✓ Code Analysis
+✓ SAST
+✓ Dependency Scan
+✓ Secret Detection
+
+Remaining:
+
+○ Configuration
+○ Deployment Validation
+
+The interface should remain responsive while analysis is running.
+
+30. NOTIFICATIONS
+
+Notifications should only be generated for important events.
+
+Examples:
+
+✓ Fix validated successfully
+
+⚠ New high-severity vulnerability detected
+
+⚠ Database performance regression detected
+
+✕ Deployment blocked by critical vulnerability
+
+Low-priority findings should not continuously generate notifications.
+
+31. COMMAND PALETTE
+
+The extension should integrate with the IDE Command Palette.
+
+Commands:
+
+Developer Intelligence: Analyze Current File
+
+Developer Intelligence: Explain Selected Code
+
+Developer Intelligence: Find Problems
+
+Developer Intelligence: Generate Fix
+
+Developer Intelligence: Validate Fix
+
+Developer Intelligence: Optimize Query
+
+Developer Intelligence: Run Security Scan
+
+Developer Intelligence: Validate Deployment
+
+Developer Intelligence: Open Dashboard
+
+32. CONTEXT MENU
+
+Right-clicking selected code should provide:
+
+Developer Intelligence
+
+• Analyze Selection
+• Explain Code
+• Find Problems
+• Generate Fix
+• Optimize
+• Security Check
+
+33. EMPTY STATES
+
+Empty states should provide useful information.
+
+Example:
+
+NO SECURITY ISSUES FOUND
+
+The latest security scan detected no security vulnerabilities.
+
+Last Scan:
+
+2 minutes ago
+
+[Run New Scan]
+
+Database example:
+
+NO DATABASE ISSUES FOUND
+
+No significant database performance problems were detected.
+
+34. LOADING STATES
+
+Avoid generic loading messages.
+
+Instead of:
+
+Loading...
+
+Use:
+
+Analyzing SQL query...
+
+Checking execution plan and existing indexes.
+
+For AI operations:
+
+Generating fix candidates...
+
+Comparing possible solutions.
+
+35. ERROR STATES
+
+Example:
+
+ANALYSIS FAILED
+
+The security scanner could not complete the requested analysis.
+
+Reason:
+
+Security service temporarily unavailable.
+
+Available Actions:
+
+[Retry]
+
+[View Previous Results]
+
+36. OFFLINE MODE
+
+The extension should provide graceful degradation when cloud services are unavailable.
+
+Example:
+
+DEVELOPER INTELLIGENCE
+
+OFFLINE
+
+Local analysis remains available.
+
+✓ Syntax Analysis
+✓ Basic Code Quality
+✓ Local Security Rules
+
+Cloud Features Unavailable:
+
+○ AI Recommendations
+○ Advanced Project Analysis
+○ Advanced Deployment Checks
+
+37. SETTINGS
+
+Settings should be organized into logical categories.
+
+GENERAL
+
+• Enable Analysis
+• Analysis Frequency
+• Notification Preferences
+
+AI
+
+• Enable AI Assistance
+• AI Provider
+• Privacy Settings
+
+SECURITY
+
+• Enable Security Scanning
+• Block Critical Deployments
+• Secret Detection
+
+DATABASE
+
+• Enable Database Analysis
+• Benchmark Settings
+
+DEPLOYMENT
+
+• Enable Deployment Validation
+• Required Checks
+
+38. PRIVACY SETTINGS
+
+The user should clearly understand what information is sent outside the local machine.
+
+PRIVACY
+
+Source Code Analysis:
+
+[✓] Local Analysis
+
+AI Analysis:
+
+[✓] Send Selected Code Context
+
+Secrets:
+
+[✓] Redact Detected Secrets
+
+Repository Upload:
+
+[ ] Allow Full Repository Upload
+
+The default configuration should minimize unnecessary transmission of source code.
+
+39. ACCESSIBILITY
+
+The extension should support:
+
+• Keyboard navigation
+• Screen readers
+• High-contrast themes
+• Adequate text contrast
+• Visible focus indicators
+• Resizable panels
+• Non-color severity indicators
+
+Example:
+
+✕ CRITICAL
+⚠ HIGH
+⚠ MEDIUM
+✓ PASSED
+
+40. RESPONSIVE WEBVIEW
+
+The dashboard should adapt to different panel sizes.
+
+Wide View:
+
+Health Score
+Findings
+Recommendations
+
+Medium View:
+
+Health Score
+Findings
+
+Narrow View:
+
+Health Score
+Expandable Sections
+
+The UI should avoid fixed-width layouts.
+
+41. AI UX
+
+AI-generated recommendations should be clearly distinguishable from deterministic analysis.
+
+Example:
+
+DETERMINISTIC FINDING
+
+Potential SQL Injection
+
+Rule:
+SEC-SQL-001
+
+AI RECOMMENDATION
+
+Use a parameterized query pattern.
+
+Confidence:
+91%
+
+Risk:
+Low
+
+Validation:
+Passed
+
+This distinction improves transparency and developer trust.
+
+42. CONFIDENCE DISPLAY
+
+AI recommendations should show confidence.
+
+Example:
+
+AI Recommendation
+
+Confidence: 94%
+
+Risk: Low
+
+Validation: Passed
+
+Confidence should not be presented as a guarantee of correctness.
+
+43. HUMAN-IN-THE-LOOP
+
+High-impact actions should require developer approval.
+
+Recommended workflow:
+
+Suggestion
+↓
+Preview
+↓
+Validation
+↓
+Developer Approval
+↓
+Application
+
+For high-risk changes:
+
+CRITICAL SECURITY FIX
+
+This change modifies authentication logic.
+
+[Review Changes]
+[Apply Manually]
+[Cancel]
+
+44. ANALYSIS HISTORY
+
+The History interface should allow developers to view previous analysis results.
+
+Example:
+
+ANALYSIS HISTORY
+
+Today
+
+09:32  Security Scan
+09:15  Code Analysis
+
+Yesterday
+
+17:40  Deployment Validation
+
+September 7
+
+14:22  Database Analysis
+
+Selecting an analysis opens the corresponding report.
+
+45. PROJECT HEALTH TRENDS
+
+The system may provide historical trends.
+
+Example:
+
+Project Health Trend
+
+Security       ↑
+Code Quality   ↑
+Performance    ↓
+Dependencies   →
+
+Trends should be based on actual historical measurements.
+
+46. REUSABLE UI COMPONENTS
+
+The frontend should use reusable components.
+
+Recommended components:
+
+• HealthCard
+• ScoreCard
+• FindingCard
+• SeverityBadge
+• ConfidenceBadge
+• RecommendationCard
+• CodeDiffViewer
+• ProgressIndicator
+• StatusBadge
+• MetricCard
+• QueryComparison
+• SecurityFinding
+• DeploymentCheck
+• EmptyState
+• ErrorState
+• ConfirmationDialog
+
+47. FRONTEND COMPONENT STRUCTURE
+
+ui/
+
+├── dashboard/
+│   ├── Overview
+│   ├── HealthScore
+│   └── Activity
+│
+├── code/
+│   ├── FindingPanel
+│   ├── FixSuggestion
+│   └── ValidationResult
+│
+├── database/
+│   ├── QueryList
+│   ├── QueryDetails
+│   └── OptimizationPanel
+│
+├── security/
+│   ├── SecurityDashboard
+│   ├── FindingList
+│   └── DependencyList
+│
+├── deployment/
+│   ├── ReadinessScore
+│   ├── ValidationChecks
+│   └── DeploymentReport
+│
+└── common/
+├── Badge
+├── Modal
+├── Button
+└── Progress
+
+48. COMPLETE USER FLOW
+
+Developer writes code
+↓
+Issue detected
+↓
+Inline warning
+↓
+Developer selects Quick Fix
+↓
+Explanation displayed
+↓
+Fix generated
+↓
+Developer previews diff
+↓
+Fix validated
+↓
+Developer approves
+↓
+Code updated
+↓
+Database analyzed
+↓
+Security scanned
+↓
+Deployment validated
+↓
+Readiness score displayed
+
+49. CORE UX WORKFLOW
+
+The complete system should follow a consistent workflow:
+
+DETECT
+
+Identify code, database, security, or deployment problems.
+
+↓
+
+EXPLAIN
+
+Explain the problem and root cause.
+
+↓
+
+SUGGEST
+
+Generate an appropriate recommendation or fix.
+
+↓
+
+VALIDATE
+
+Run automated checks against the recommendation.
+
+↓
+
+REVIEW
+
+Allow the developer to inspect the proposed changes.
+
+↓
+
+APPROVE
+
+Developer decides whether the change should be applied.
+
+↓
+
+APPLY
+
+Apply the approved modification.
+
+↓
+
+MONITOR
+
+Track the resulting project health and performance.
+
+50. FINAL UI ARCHITECTURE
+    
+                DEVELOPER
+                │
+                ↓
+        IDE EXTENSION
+                │
+┌───────────────┼───────────────┐
+│               │               │
+↓               ↓               ↓
+    
+    EDITOR          SIDEBAR        DASHBOARD
+    │               │               │
+    ↓               ↓               ↓
+    Inline Issues      Issues           Health
+    Quick Fix          Security         Security
+    Code Actions       Database         Database
+    Deployment       Deployment
+    │
+    ↓
+    ANALYSIS ENGINE
+    │
+    ┌───────────────┼───────────────┐
+    │               │               │
+    ↓               ↓               ↓
+    CODE          DATABASE         SECURITY
+    ANALYSIS       ANALYSIS          SCAN
+    │               │               │
+    └───────────────┼───────────────┘
+    │
+    ↓
+    AI / RULE ENGINE
+    │
+    ↓
+    RECOMMENDATION
+    │
+    ↓
+    VALIDATION
+    │
+    ↓
+    HUMAN APPROVAL
+    │
+    ↓
+    APPLY
+    │
+    ↓
+    DEPLOYMENT CHECK
+    │
+    ┌─────────┼─────────┐
+    ↓         ↓         ↓
+    READY     REVIEW    BLOCKED
+
+51. UI/UX DIFFERENTIATOR
+
+The extension should not simply tell the developer:
+
+"There is an error."
+
+Instead, the interface should provide a complete decision-support workflow:
+
+Problem
+↓
+Why it happened
+↓
+Recommended solution
+↓
+AI confidence
+↓
+Risk assessment
+↓
+Validation result
+↓
+Code diff
+↓
+Developer approval
+↓
+Application
+
+For database optimization:
+
+Slow Query
+↓
+Bottleneck
+↓
+Optimization Recommendation
+↓
+Benchmark
+↓
+Measured Improvement
+
+For deployment:
+
+Deployment Request
+↓
+Build Check
+↓
+Test Check
+↓
+Security Check
+↓
+Dependency Check
+↓
+Performance Check
+↓
+Deployment Readiness Score
+↓
+READY / REVIEW / BLOCKED
+
+52. FINAL UX OBJECTIVE
+
+The Developer Intelligence Extension should create a unified developer workflow:
+
+CODE
+↓
+ANALYZE
+↓
+DETECT
+↓
+EXPLAIN
+↓
+FIX
+↓
+VALIDATE
+↓
+OPTIMIZE
+↓
+SECURE
+↓
+TEST
+↓
+DEPLOY
+↓
+MONITOR
+↓
+LEARN
+
+The primary goal of the UI/UX is to make complex software intelligence understandable and actionable without disrupting the developer's normal workflow.

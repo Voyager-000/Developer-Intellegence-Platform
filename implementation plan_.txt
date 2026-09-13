@@ -1,0 +1,1645 @@
+DETAILED IMPLEMENTATION PLAN
+
+Developer Intelligence Extension
+
+1. Implementation Overview
+
+The Developer Intelligence Extension will be implemented as an IDE-native developer productivity platform combining:
+
+- Intelligent code analysis
+- Self-correcting code
+- Database performance optimization
+- Security analysis
+- Deployment validation
+- AI/ML-assisted recommendations
+- Automated verification
+- Developer-controlled application of changes
+
+The implementation should follow an incremental approach rather than attempting to build the complete platform simultaneously.
+
+The recommended development strategy is:
+
+FOUNDATION
+→ IDE EXTENSION
+→ BACKEND
+→ CODE ANALYSIS
+→ SELF-CORRECTION
+→ DATABASE OPTIMIZATION
+→ SECURITY
+→ DEPLOYMENT VALIDATION
+→ AI/ML
+→ INTEGRATION
+→ TESTING
+→ DEMO / RELEASE
+
+2. Implementation Strategy
+
+Development should be divided into the following phases:
+
+Phase 0 – Planning & Environment Setup
+
+Phase 1 – Core Platform
+
+Phase 2 – IDE Extension
+
+Phase 3 – Code Intelligence
+
+Phase 4 – Self-Correction
+
+Phase 5 – Database Intelligence
+
+Phase 6 – Security Intelligence
+
+Phase 7 – Deployment Validation
+
+Phase 8 – AI/ML Intelligence
+
+Phase 9 – Integration & Unified Dashboard
+
+Phase 10 – Security Hardening
+
+Phase 11 – Testing & Verification
+
+Phase 12 – Deployment & Hackathon Demo
+
+3. Phase 0 – Planning & Environment Setup
+
+Objective
+
+Establish the technical foundation and development workflow.
+
+Tasks
+
+3.1 Repository Setup
+
+Create a Git repository with:
+
+- README
+- CONTRIBUTING
+- LICENSE
+- Documentation
+- Issue templates
+- Pull-request templates
+- Environment configuration
+- CI configuration
+
+Suggested structure:
+
+developer-intelligence/
+│
+├── extension/
+├── backend/
+├── analysis-engine/
+├── ai-engine/
+├── database-engine/
+├── security-engine/
+├── deployment-engine/
+├── sandbox/
+├── tests/
+├── docs/
+└── infrastructure/
+
+3.2 Development Environment
+
+Install and configure:
+
+- Node.js
+- TypeScript
+- Python
+- PostgreSQL
+- Redis
+- Docker
+- Git
+- VS Code
+- Required SDKs and CLI tools
+
+3.3 Coding Standards
+
+Define:
+
+- Naming conventions
+- Folder structure
+- API conventions
+- Error-handling conventions
+- Logging conventions
+- Git branching strategy
+- Commit message format
+- Code-review rules
+
+3.4 Environment Configuration
+
+Create:
+
+.env.example
+
+Configuration categories:
+
+- Database
+- Redis
+- AI provider
+- Authentication
+- Git provider
+- Object storage
+- Security scanner
+- Deployment validator
+
+Secrets must never be committed to Git.
+
+4. Phase 1 – Core Platform
+
+Objective
+
+Build the common backend infrastructure required by every feature.
+
+4.1 FastAPI Backend
+
+Implement:
+
+- Application startup
+- Configuration management
+- API versioning
+- Middleware
+- Exception handling
+- Request validation
+- Logging
+- Health endpoints
+
+Initial endpoints:
+
+GET /health
+
+GET /api/v1/system/status
+
+4.2 Database
+
+Set up PostgreSQL.
+
+Implement initial tables:
+
+- users
+- projects
+- repositories
+- analysis_jobs
+- findings
+- fixes
+- fix_validations
+- database_analyses
+- database_findings
+- security_scans
+- security_findings
+- deployment_validations
+- deployment_checks
+- audit_logs
+
+4.3 Migration System
+
+Use database migrations for:
+
+- Schema creation
+- Schema updates
+- Rollbacks
+- Version tracking
+
+All schema changes must go through migrations.
+
+4.4 Redis
+
+Use Redis for:
+
+- Background jobs
+- Caching
+- Rate limiting
+- Temporary analysis state
+
+4.5 Authentication
+
+Implement:
+
+- User registration
+- Login
+- Token generation
+- Refresh tokens
+- Logout
+- Token revocation
+
+Then implement project-level authorization.
+
+5. Phase 2 – IDE Extension
+
+Objective
+
+Create the basic VS Code extension.
+
+5.1 Extension Initialization
+
+Implement:
+
+- Extension activation
+- Activity Bar integration
+- Sidebar
+- Command Palette
+- Status indicators
+- Configuration settings
+
+5.2 Core UI
+
+Initial sidebar:
+
+Overview
+Issues
+Security
+Database
+Deployment
+History
+
+5.3 Editor Integration
+
+Implement:
+
+- Diagnostics
+- Inline warnings
+- Hover information
+- Code actions
+- Quick Fix buttons
+- Context menus
+
+5.4 Backend Communication
+
+Create an API client inside the extension.
+
+Responsibilities:
+
+- Authentication
+- API requests
+- Job polling
+- Error handling
+- Retry handling
+- Request cancellation
+
+6. Phase 3 – Code Intelligence
+
+Objective
+
+Implement the first major intelligence capability.
+
+6.1 File Analysis
+
+Build:
+
+- File detection
+- Language detection
+- Source extraction
+- AST generation
+- Lint integration
+- Finding normalization
+
+6.2 Static Analysis
+
+Integrate supported analyzers.
+
+Example:
+
+Source Code
+→ Parser
+→ AST
+→ Rules
+→ Findings
+
+Each finding should contain:
+
+- ID
+- File
+- Line
+- Column
+- Category
+- Severity
+- Description
+- Evidence
+- Confidence
+
+6.3 Finding Engine
+
+Create a unified finding representation.
+
+Example:
+
+{
+"category": "null_reference",
+"severity": "MEDIUM",
+"confidence": 0.94,
+"file": "src/user.py",
+"line": 42
+}
+
+6.4 Issue Dashboard
+
+Display:
+
+- Total findings
+- Critical findings
+- High findings
+- Medium findings
+- Low findings
+- File distribution
+- Category distribution
+
+7. Phase 4 – Self-Correction
+
+Objective
+
+Convert detected problems into validated corrective actions.
+
+7.1 Context Extraction
+
+For every finding:
+
+- Extract relevant lines
+- Identify function
+- Identify class
+- Identify imports
+- Retrieve related code
+- Retrieve test context
+- Retrieve relevant documentation
+
+7.2 AI Fix Generation
+
+Create:
+
+POST /api/v1/ai/generate-fix
+
+Input:
+
+- Finding
+- Code context
+- Language
+- Project information
+
+Output:
+
+- Explanation
+- Proposed patch
+- Confidence
+- Risk
+
+7.3 Diff Generation
+
+Convert generated fixes into standard patch/diff representation.
+
+Display:
+
+BEFORE
+vs
+AFTER
+
+7.4 Fix Validation
+
+Implement validation pipeline:
+
+Patch
+→ Syntax Check
+→ Compile
+→ Tests
+→ Security Scan
+→ Regression Analysis
+
+7.5 Approval Workflow
+
+Implement:
+
+Generate
+→ Preview
+→ Validate
+→ Approve
+→ Apply
+
+High-risk changes must require explicit approval.
+
+7.6 Rollback
+
+Every applied fix should be reversible.
+
+Store:
+
+- Original version
+- Generated patch
+- Applied patch
+- Validation result
+- Timestamp
+- User
+
+8. Phase 5 – Database Intelligence
+
+Objective
+
+Analyze SQL and identify performance improvements.
+
+8.1 Query Collection
+
+Support queries from:
+
+- SQL files
+- Application code
+- Query logs
+- Developer-selected SQL
+
+8.2 SQL Parser
+
+Implement:
+
+- Query normalization
+- Table extraction
+- Column extraction
+- Join identification
+- Filtering identification
+- Ordering/grouping analysis
+
+8.3 Execution Plan Analysis
+
+Where supported:
+
+Run:
+
+EXPLAIN
+
+and optionally:
+
+EXPLAIN ANALYZE
+
+Capture:
+
+- Execution time
+- Rows scanned
+- Rows returned
+- Index usage
+- Join strategy
+- Sequential scans
+
+8.4 Recommendation Engine
+
+Detect:
+
+- Missing indexes
+- Poor joins
+- Full scans
+- Excessive column retrieval
+- N+1 patterns
+- Inefficient filtering
+
+8.5 Optimization Generation
+
+Generate:
+
+- Optimized query
+- Index recommendation
+- Query rewrite
+- Migration suggestion
+
+Never automatically modify a production database.
+
+8.6 Benchmark Engine
+
+Perform:
+
+Original Query
+→ Benchmark
+→ Optimized Query
+→ Benchmark
+→ Compare
+
+Store measured results.
+
+Example:
+
+Original:
+420 ms
+
+Optimized:
+170 ms
+
+Improvement:
+59.5%
+
+9. Phase 6 – Security Intelligence
+
+Objective
+
+Turn the extension into an application-security assistant.
+
+9.1 Security Scanner Integration
+
+Implement:
+
+- SAST
+- Secret scanning
+- Dependency scanning
+- Configuration analysis
+- Container scanning where applicable
+
+9.2 Security Finding Normalization
+
+Normalize scanner outputs into the same finding model.
+
+Example:
+
+Category:
+SQL Injection
+
+Severity:
+HIGH
+
+Location:
+src/database.py:42
+
+Confidence:
+97%
+
+9.3 Secret Detection
+
+Implement:
+
+- Pattern detection
+- Entropy checks
+- Provider-specific signatures
+- Automatic masking
+
+Detected secrets must be redacted before AI processing.
+
+9.4 Security Explanation
+
+Use AI to explain:
+
+- Vulnerability
+- Root cause
+- Impact
+- Remediation
+
+9.5 Security Fix Generation
+
+Generate secure patches.
+
+Validation:
+
+Patch
+→ SAST
+→ Security Tests
+→ Unit Tests
+→ Regression
+
+10. Phase 7 – Deployment Validation
+
+Objective
+
+Determine whether an application is ready for deployment.
+
+10.1 Build Validation
+
+Check:
+
+- Build status
+- Compilation
+- Package generation
+
+10.2 Test Validation
+
+Check:
+
+- Unit tests
+- Integration tests
+- Test failures
+- Coverage trends where available
+
+10.3 Dependency Validation
+
+Check:
+
+- Vulnerable packages
+- Version conflicts
+- Missing dependencies
+
+10.4 Configuration Validation
+
+Check:
+
+- Environment variables
+- Debug settings
+- Port configuration
+- TLS settings
+- Production configuration
+
+10.5 Infrastructure Validation
+
+Analyze where supported:
+
+- Dockerfiles
+- Kubernetes manifests
+- CI/CD configuration
+- Infrastructure-as-Code
+
+10.6 Deployment Readiness Score
+
+Calculate:
+
+Code Quality
++
+Security
++
+Testing
++
+Dependencies
++
+Configuration
++
+Performance
++
+Infrastructure
+
+Output:
+
+READY
+
+REVIEW
+
+BLOCKED
+
+11. Phase 8 – AI/ML Intelligence
+
+Objective
+
+Introduce intelligence beyond deterministic rules.
+
+11.1 AI Gateway
+
+Create a centralized AI service.
+
+Responsibilities:
+
+- Prompt management
+- Model routing
+- Secret redaction
+- Input validation
+- Output validation
+- Rate limiting
+- Model fallback
+
+11.2 Model Integration
+
+Start with pre-trained/code-capable models rather than training a large model from scratch.
+
+Use cases:
+
+- Code explanation
+- Root-cause analysis
+- Fix generation
+- SQL optimization
+- Security explanation
+- Deployment recommendations
+
+11.3 ML Classifiers
+
+Introduce lightweight models for:
+
+- Finding classification
+- Severity prediction
+- False-positive prediction
+- Fix ranking
+- Deployment risk prediction
+
+11.4 Embedding System
+
+Implement embeddings for:
+
+- Documentation
+- Previous fixes
+- Code snippets
+- Security knowledge
+- Optimization patterns
+
+Store vectors using PostgreSQL + pgvector where appropriate.
+
+11.5 RAG
+
+Implement:
+
+Question
+→ Context Retrieval
+→ Vector Search
+→ Relevant Knowledge
+→ Prompt
+→ AI Response
+
+12. Phase 9 – Unified Intelligence Layer
+
+Objective
+
+Integrate all modules into a single developer experience.
+
+Unified pipeline:
+
+Code
+→ Analyze
+→ Detect
+→ Explain
+→ Fix
+→ Validate
+→ Optimize
+→ Secure
+→ Test
+→ Deploy
+
+12.1 Unified Finding Model
+
+All analysis engines should return standardized results.
+
+Modules:
+
+Code Engine
+Database Engine
+Security Engine
+Deployment Engine
+
+should feed into a common recommendation system.
+
+12.2 Unified Project Health
+
+Create a single project score.
+
+Example:
+
+Code Quality: 88
+Security: 91
+Performance: 82
+Testing: 94
+Dependencies: 90
+Deployment: 87
+
+Overall:
+89 / 100
+
+12.3 Unified Dashboard
+
+Dashboard should provide:
+
+- Overall score
+- Findings
+- AI recommendations
+- Security issues
+- Database issues
+- Deployment status
+- Historical trends
+
+13. Phase 10 – Security Hardening
+
+Objective
+
+Secure the platform itself.
+
+Implement:
+
+- TLS
+- Secure authentication
+- Role-based authorization
+- Rate limiting
+- Input validation
+- Secret redaction
+- Audit logging
+- Secure error handling
+- Dependency scanning
+- Container hardening
+
+13.1 AI Security
+
+Implement protection against:
+
+- Prompt injection
+- Data leakage
+- Malicious repository content
+- Unsafe generated code
+- Excessive AI permissions
+
+13.2 Sandbox
+
+All generated-code execution should occur inside a controlled environment.
+
+Controls:
+
+- CPU limit
+- Memory limit
+- Timeout
+- Restricted network
+- Restricted filesystem
+- Non-root execution
+
+14. Phase 11 – Testing & Verification
+
+Objective
+
+Verify the complete system.
+
+14.1 Unit Testing
+
+Test:
+
+- Parsers
+- Rules
+- API handlers
+- Database functions
+- Scoring
+- AI response validation
+
+14.2 Integration Testing
+
+Test:
+
+Extension
+↔ Backend
+
+Backend
+↔ Database
+
+Backend
+↔ AI
+
+Backend
+↔ Security Scanner
+
+Backend
+↔ Sandbox
+
+14.3 AI Testing
+
+Create golden datasets for:
+
+- Bug detection
+- Fix generation
+- Security findings
+- SQL optimization
+
+Measure:
+
+- Precision
+- Recall
+- F1
+- Validated fix rate
+- False-positive rate
+
+14.4 Security Testing
+
+Perform:
+
+- SAST
+- DAST
+- Dependency scan
+- Secret scan
+- Prompt-injection tests
+- Authorization tests
+- Sandbox tests
+
+14.5 Performance Testing
+
+Measure:
+
+- Extension startup
+- Analysis latency
+- API latency
+- AI latency
+- Scan duration
+- Memory usage
+- CPU usage
+
+14.6 End-to-End Testing
+
+Test:
+
+Developer
+→ Finding
+→ AI Explanation
+→ Fix
+→ Validation
+→ Approval
+→ Apply
+→ Security
+→ Database
+→ Deployment
+
+15. Phase 12 – Deployment & Demo Preparation
+
+Objective
+
+Prepare a reliable hackathon-ready deployment.
+
+15.1 Backend Deployment
+
+Deploy:
+
+- FastAPI
+- PostgreSQL
+- Redis
+- Worker service
+- AI gateway
+
+15.2 Extension Packaging
+
+Create:
+
+- Extension package
+- Installation instructions
+- Configuration documentation
+
+15.3 Demo Project
+
+Prepare a deliberately imperfect project containing:
+
+- Buggy code
+- Security vulnerability
+- Slow database query
+- Vulnerable dependency
+- Deployment configuration issue
+
+The extension should analyze this project and demonstrate the complete workflow.
+
+16. Hackathon Demo Flow
+
+Recommended demonstration:
+
+Step 1
+
+Open a deliberately flawed project.
+
+Step 2
+
+Extension detects:
+
+- Code issue
+- Security issue
+- Database issue
+- Dependency issue
+
+Step 3
+
+Open a code finding.
+
+Show:
+
+Problem
+→ Explanation
+→ AI Fix
+
+Step 4
+
+Click:
+
+Preview Fix
+
+Step 5
+
+Show:
+
+Before
+vs
+After
+
+Step 6
+
+Run validation.
+
+Show:
+
+Syntax: PASS
+Tests: PASS
+Security: PASS
+Regression: PASS
+
+Step 7
+
+Show database analysis.
+
+Original:
+420 ms
+
+Optimized:
+170 ms
+
+Step 8
+
+Run security scan.
+
+Show:
+
+Security Score
+92/100
+
+Step 9
+
+Run deployment validation.
+
+Show:
+
+Deployment Readiness
+87/100
+
+Status:
+REVIEW
+
+Step 10
+
+Show final Project Health dashboard.
+
+This demonstrates that the extension covers the complete software lifecycle.
+
+17. Suggested Development Order by Team
+
+If the project has multiple developers, parallelize development.
+
+Developer 1 – Extension / Frontend
+
+Responsibilities:
+
+- VS Code extension
+- Sidebar
+- Dashboard
+- Diagnostics
+- Quick Fix UI
+- Diff viewer
+- Settings
+
+Developer 2 – Backend
+
+Responsibilities:
+
+- FastAPI
+- Authentication
+- APIs
+- Database integration
+- Job management
+- Redis
+
+Developer 3 – AI/ML
+
+Responsibilities:
+
+- AI gateway
+- Prompt engineering
+- Fix generation
+- RAG
+- ML models
+- Confidence scoring
+
+Developer 4 – Security / Database / DevOps
+
+Responsibilities:
+
+- Security scanner
+- Secret detection
+- Database optimizer
+- Deployment validation
+- Docker
+- CI/CD
+
+If the team is smaller, combine responsibilities around the core MVP.
+
+18. MVP Prioritization
+
+The team should not attempt to implement every planned capability before the hackathon.
+
+P0 – Must Have
+
+- VS Code extension
+- Code analysis
+- AI explanation
+- Self-correction
+- Fix preview
+- Fix validation
+- Security scanning
+- SQL optimization
+- Deployment validation
+- Unified dashboard
+
+P1 – Strong Additions
+
+- Confidence scoring
+- Risk scoring
+- RAG
+- Analysis history
+- Project health trends
+- Dependency analysis
+- Sandbox
+
+P2 – Future
+
+- Advanced deployment prediction
+- Personalized recommendations
+- Organization-specific models
+- Fully local AI
+- Advanced multi-agent reasoning
+- Automatic learning from feedback
+
+19. Recommended 4-Week Execution Roadmap
+
+Week 1 – Foundation + Core
+
+Days 1–2
+
+- Finalize architecture
+- Repository setup
+- Development environments
+- Database schema
+- CI pipeline
+
+Days 3–4
+
+- FastAPI foundation
+- Authentication
+- PostgreSQL
+- Redis
+- Basic extension
+
+Days 5–7
+
+- Sidebar
+- Dashboard
+- API integration
+- Initial code analysis
+- Findings UI
+
+Week 2 – Intelligence
+
+Days 8–10
+
+- Static analysis
+- Finding engine
+- Code diagnostics
+- AI explanation
+
+Days 11–12
+
+- AI fix generation
+- Diff viewer
+- Fix preview
+
+Days 13–14
+
+- Fix validation
+- Tests
+- Apply / rollback
+- Self-correction workflow
+
+Week 3 – Database + Security + Deployment
+
+Days 15–17
+
+- SQL parser
+- Query analysis
+- Execution plan
+- Optimization recommendations
+
+Days 18–19
+
+- Security scanner
+- Secret detection
+- Dependency scanning
+
+Days 20–21
+
+- Deployment validation
+- Readiness score
+- Deployment report
+
+Week 4 – Integration + Quality
+
+Days 22–24
+
+- Unified dashboard
+- End-to-end workflow
+- AI confidence/risk
+- Analysis history
+
+Days 25–26
+
+- Security hardening
+- Sandbox
+- Error handling
+- Performance optimization
+
+Day 27
+
+- Full test suite
+- AI benchmark
+- Security testing
+
+Day 28
+
+- Final deployment
+- Demo project
+- Presentation
+- Documentation
+
+20. Daily Development Cycle
+
+Each development day should follow:
+
+PLAN
+→ IMPLEMENT
+→ UNIT TEST
+→ INTEGRATE
+→ REVIEW
+→ DOCUMENT
+→ COMMIT
+
+Every completed feature should include:
+
+- Code
+- Tests
+- API documentation
+- UI integration
+- Error handling
+- Security considerations
+
+21. Git Workflow
+
+Recommended:
+
+main
+│
+├── develop
+│
+├── feature/code-analysis
+├── feature/self-correction
+├── feature/database-optimizer
+├── feature/security
+├── feature/deployment
+└── feature/ai
+
+Flow:
+
+Feature Branch
+→ Pull Request
+→ Automated Tests
+→ Code Review
+→ Merge
+→ Integration
+
+22. CI/CD Implementation
+
+Pipeline:
+
+                COMMIT
+                   ↓
+                LINT
+                   ↓
+              TYPE CHECK
+                   ↓
+              UNIT TESTS
+                   ↓
+             SAST / SECRET
+                   ↓
+           DEPENDENCY SCAN
+                   ↓
+           INTEGRATION TEST
+                   ↓
+              BUILD
+                   ↓
+             E2E TEST
+                   ↓
+          SECURITY VALIDATION
+                   ↓
+               STAGING
+                   ↓
+             FINAL REVIEW
+                   ↓
+             PRODUCTION
+
+23. Infrastructure Plan
+
+Recommended architecture:
+
+             INTERNET
+                 |
+                CDN
+                 |
+             API GATEWAY
+                 |
+             FASTAPI API
+                 |
+    +------------+------------+
+    |            |            |
+PostgreSQL     Redis       Workers
+    |                         |
+    |                    Analysis Engine
+    |                         |
+    |                    AI Gateway
+    |                         |
+    |                    Sandbox
+    |
+ Reports / Metadata
+
+Object storage can be added for larger temporary artifacts.
+
+24. Observability
+
+Implement:
+
+- Structured logging
+- Metrics
+- Health checks
+- Error monitoring
+- Job monitoring
+- AI latency tracking
+- API latency tracking
+
+Monitor:
+
+- Request count
+- Error rate
+- Analysis duration
+- Queue length
+- AI response time
+- Worker utilization
+
+25. Configuration Management
+
+Separate configuration for:
+
+Development
+
+Testing
+
+Staging
+
+Production
+
+Configuration must control:
+
+- AI provider
+- Model
+- Database
+- Redis
+- Security policies
+- Retention
+- Rate limits
+- Feature flags
+
+26. Feature Flags
+
+Use feature flags to safely enable capabilities.
+
+Examples:
+
+ENABLE_AI_FIXES
+
+ENABLE_DB_OPTIMIZER
+
+ENABLE_SECURITY_SCAN
+
+ENABLE_DEPLOYMENT_VALIDATION
+
+ENABLE_RAG
+
+ENABLE_LOCAL_MODEL
+
+This allows unstable features to be disabled without redeploying the complete system.
+
+27. Error Recovery Strategy
+
+Every major service should have a controlled failure path.
+
+AI unavailable
+
+Fallback to deterministic analysis.
+
+Security scanner unavailable
+
+Mark scan:
+
+NOT VERIFIED
+
+Do not incorrectly report:
+
+SECURE
+
+Database unavailable
+
+Return:
+
+DATABASE ANALYSIS UNAVAILABLE
+
+Worker failure
+
+Automatically retry safe jobs where appropriate.
+
+Validation failure
+
+Reject the generated fix.
+
+28. Data Migration Strategy
+
+Database migration process:
+
+Schema Change
+→ Migration Script
+→ Test Environment
+→ Migration Validation
+→ Backup
+→ Staging
+→ Production
+
+Never manually modify production schema without tracking the change through migration tooling.
+
+29. Documentation Plan
+
+Maintain:
+
+Technical Documentation
+
+- Architecture
+- Database schema
+- API specification
+- AI/ML specification
+- Security specification
+- Testing strategy
+
+Developer Documentation
+
+- Setup
+- Development workflow
+- Contribution guide
+- Troubleshooting
+
+User Documentation
+
+- Installation
+- Getting started
+- Feature guide
+- Privacy settings
+- Security explanation
+
+30. Definition of Done
+
+A feature is considered complete only when:
+
+[ ] Implementation complete
+
+[ ] Unit tests written
+
+[ ] Integration tested
+
+[ ] API documented
+
+[ ] UI integrated
+
+[ ] Error handling implemented
+
+[ ] Security reviewed
+
+[ ] Logging implemented
+
+[ ] Documentation updated
+
+[ ] Code reviewed
+
+[ ] CI passes
+
+31. MVP Definition of Done
+
+The MVP is complete when a developer can:
+
+1. Open a project.
+2. Run analysis.
+3. Detect a code problem.
+4. Understand why it is a problem.
+5. Generate an AI fix.
+6. Preview the fix.
+7. Validate the fix.
+8. Approve and apply it.
+9. Analyze a database query.
+10. Receive an optimization recommendation.
+11. Run a security scan.
+12. Detect vulnerabilities.
+13. Validate deployment.
+14. Receive a readiness decision.
+15. View all results from one dashboard.
+
+32. Final Implementation Architecture
+
+             DEVELOPER
+                 |
+                 v
+            VS CODE
+            EXTENSION
+                 |
+                 v
+            API GATEWAY
+                 |
+                 v
+          FASTAPI BACKEND
+                 |
+    +------------+-------------+
+    |            |             |
+    v            v             v
+ CODE          DATABASE      SECURITY
+ENGINE          ENGINE        ENGINE
+    |            |             |
+    +------------+-------------+
+                 |
+                 v
+          AI / ML ENGINE
+                 |
+         +-------+-------+
+         |               |
+      LLM / ML         RAG
+         |               |
+         +-------+-------+
+                 |
+                 v
+          RECOMMENDATION
+                 |
+                 v
+          VALIDATION ENGINE
+                 |
+    +------------+-------------+
+    |            |             |
+   TESTS      SECURITY      BENCHMARK
+    |            |             |
+    +------------+-------------+
+                 |
+                 v
+              SANDBOX
+                 |
+                 v
+         DEVELOPER APPROVAL
+                 |
+                 v
+              APPLY
+                 |
+                 v
+      DEPLOYMENT VALIDATION
+                 |
+                 v
+         READY / REVIEW /
+             BLOCKED
+
+33. Final Execution Principle
+
+The implementation should prioritize a working end-to-end vertical slice over isolated unfinished features.
+
+The most important development milestone is:
+
+CODE
+→ DETECT
+→ EXPLAIN
+→ FIX
+→ VALIDATE
+→ APPROVE
+→ APPLY
+
+Once this workflow is stable, add:
+
+DATABASE
+→ OPTIMIZE
+
+then:
+
+SECURITY
+→ DETECT
+→ REMEDIATE
+
+then:
+
+DEPLOYMENT
+→ VALIDATE
+→ DECIDE
+
+34. Final Project Objective
+
+The completed Developer Intelligence Extension should behave like an intelligent engineering assistant integrated directly into the developer's workflow.
+
+Instead of:
+
+WRITE CODE
+→ FIND ERROR
+→ SEARCH INTERNET
+→ MANUALLY FIX
+→ RUN TESTS
+→ CHECK SECURITY
+→ CHECK DATABASE
+→ DEPLOY
+
+The extension provides:
+
+WRITE
+→ ANALYZE
+→ DETECT
+→ EXPLAIN
+→ FIX
+→ VALIDATE
+→ OPTIMIZE
+→ SECURE
+→ TEST
+→ DEPLOY
+
+The implementation goal is not to create an autonomous system that blindly modifies projects.
+
+The goal is to create a:
+
+VERIFIED, SECURITY-AWARE, AI-ASSISTED DEVELOPER INTELLIGENCE PLATFORM
+
+where AI provides intelligence, deterministic tools provide evidence, automated validation provides confidence, and the developer retains final control.

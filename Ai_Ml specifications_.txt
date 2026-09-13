@@ -1,0 +1,1418 @@
+AI/ML SPECIFICATIONS
+
+Developer Intelligence Extension
+
+1. AI/ML Overview
+
+The Developer Intelligence Extension uses a hybrid AI/ML architecture to analyze source code, identify problems, generate corrective solutions, optimize database performance, detect security risks, and validate deployment readiness.
+
+The AI layer is not responsible for making every decision automatically. Instead, it works together with deterministic rule engines, static analyzers, database analysis tools, security scanners, and validation systems.
+
+Core AI/ML workflow:
+
+CODE / QUERY / CONFIGURATION
+↓
+PREPROCESSING
+↓
+RULE-BASED + STATIC ANALYSIS
+↓
+ML / AI ANALYSIS
+↓
+ISSUE CLASSIFICATION
+↓
+ROOT-CAUSE ANALYSIS
+↓
+RECOMMENDATION / FIX GENERATION
+↓
+VALIDATION
+↓
+CONFIDENCE + RISK SCORING
+↓
+DEVELOPER APPROVAL
+↓
+APPLICATION
+
+2. AI/ML Objectives
+
+The AI/ML subsystem should provide the following capabilities:
+
+1. Detect programming errors and potential bugs.
+2. Identify code smells and maintainability problems.
+3. Explain detected problems in understandable language.
+4. Generate possible code fixes.
+5. Rank multiple fixes according to confidence and risk.
+6. Learn from developer feedback.
+7. Analyze SQL queries and database access patterns.
+8. Recommend query and indexing optimizations.
+9. Detect security vulnerabilities and insecure coding patterns.
+10. Analyze deployment configuration and identify deployment risks.
+11. Predict the likelihood of deployment failure.
+12. Generate recommendations for improving project health.
+13. Reduce false positives through context-aware analysis.
+
+3. AI/ML Architecture
+
+The AI/ML architecture consists of the following components:
+
+3.1 Data Collection Layer
+
+Sources:
+
+- Source code
+- AST representations
+- Git commits
+- Error logs
+- Test results
+- SQL queries
+- Database execution plans
+- Dependency information
+- Security scan results
+- Dockerfiles
+- Kubernetes manifests
+- CI/CD configurations
+- Deployment logs
+- Developer feedback
+
+Only the minimum required information should be sent to AI models.
+
+3.2 Preprocessing Layer
+
+Before AI inference, input data is normalized.
+
+Operations include:
+
+- Code parsing
+- Language identification
+- AST generation
+- Code tokenization
+- SQL normalization
+- Log normalization
+- Configuration parsing
+- Dependency extraction
+- Sensitive-data detection
+- Secret redaction
+- Context extraction
+
+Example:
+
+Raw code
+→ Language detection
+→ AST
+→ Relevant function
+→ Imports
+→ Dependencies
+→ Error context
+→ AI input
+
+4. Multi-Layer Intelligence Model
+
+The system should use multiple levels of analysis instead of relying completely on an LLM.
+
+Layer 1 – Deterministic Rules
+
+Used for highly predictable problems.
+
+Examples:
+
+- Syntax errors
+- Undefined variables
+- Unused imports
+- Dangerous functions
+- Hard-coded secrets
+- Known insecure configurations
+- Obvious SQL anti-patterns
+
+Technologies:
+
+- Language parsers
+- AST analysis
+- Linters
+- Security rules
+- Regex/pattern detection
+- Static analyzers
+
+Layer 2 – ML Classification
+
+ML models classify findings based on context.
+
+Example classifications:
+
+- Bug
+- Code smell
+- Security vulnerability
+- Performance issue
+- Reliability issue
+- Deployment risk
+
+The model can also estimate:
+
+- Severity
+- Confidence
+- False-positive probability
+- Potential impact
+
+Layer 3 – LLM Reasoning
+
+The LLM is used for context-heavy tasks such as:
+
+- Explaining issues
+- Root-cause reasoning
+- Generating code fixes
+- Generating SQL optimizations
+- Suggesting configuration improvements
+- Comparing alternative solutions
+- Summarizing deployment risks
+
+Layer 4 – Validation Engine
+
+AI-generated output must be validated before being recommended as a safe fix.
+
+Validation can include:
+
+- Syntax validation
+- Compilation
+- Unit tests
+- Integration tests
+- Static analysis
+- Security scanning
+- Performance benchmarking
+- Regression testing
+
+Only validated recommendations should receive high confidence.
+
+5. AI Model Components
+
+5.1 Code Understanding Model
+
+Purpose:
+
+Understand source code structure and developer intent.
+
+Inputs:
+
+- Source code
+- AST
+- Function/class context
+- Imports
+- Error messages
+- Relevant files
+- Git changes
+
+Outputs:
+
+- Code explanation
+- Bug explanation
+- Possible causes
+- Relevant dependencies
+- Suggested corrections
+
+5.2 Code Issue Classifier
+
+The classifier determines whether a suspicious code pattern represents a meaningful problem.
+
+Example output:
+
+{
+"category": "null_reference",
+"severity": "medium",
+"confidence": 0.94,
+"false_positive_probability": 0.06
+}
+
+5.3 Fix Generation Model
+
+The system generates one or more possible fixes.
+
+Input:
+
+- Problem description
+- Relevant source code
+- Programming language
+- Project context
+- Existing tests
+- Static-analysis findings
+
+Output:
+
+- Proposed patch
+- Explanation
+- Confidence
+- Risk level
+
+The generated patch should preferably be represented as a structured diff rather than replacing the entire file.
+
+5.4 Fix Ranking Model
+
+When multiple fixes are possible, the system ranks them.
+
+Ranking factors:
+
+- Correctness
+- Test coverage
+- Security impact
+- Performance impact
+- Code complexity
+- Maintainability
+- Compatibility
+- Historical developer preference
+
+Example:
+
+Fix A
+Confidence: 96%
+Risk: Low
+
+Fix B
+Confidence: 87%
+Risk: Medium
+
+Fix C
+Confidence: 74%
+Risk: High
+
+6. Self-Correcting Code AI Pipeline
+
+The self-correction pipeline follows:
+
+1. Detect issue
+2. Extract context
+3. Identify root cause
+4. Generate fixes
+5. Generate patch
+6. Validate patch
+7. Re-analyze modified code
+8. Compare results
+9. Calculate confidence
+10. Ask developer for approval
+11. Apply approved fix
+
+Example:
+
+Code Issue
+→ AI analyzes function
+→ Generates patch
+→ Runs tests
+→ Re-runs static analysis
+→ Security scan
+→ Regression check
+→ Developer approves
+→ Patch applied
+
+7. Context Retrieval System
+
+The AI should not receive the entire repository for every request.
+
+A context retrieval system should identify only relevant information.
+
+Possible context sources:
+
+- Current file
+- Selected code
+- Parent function/class
+- Imported modules
+- Related functions
+- Git diff
+- Error stack trace
+- Test cases
+- Project configuration
+- Relevant documentation
+
+Context priority:
+
+1. Selected code
+2. Current function/class
+3. Related dependency
+4. Error information
+5. Relevant project files
+6. Repository-wide information
+
+This reduces latency, token usage, and unnecessary exposure of source code.
+
+8. Retrieval-Augmented Generation (RAG)
+
+RAG can be used for project-specific knowledge.
+
+Knowledge sources may include:
+
+- Project documentation
+- Internal coding standards
+- Architecture documentation
+- API documentation
+- Framework documentation
+- Database schema
+- Security policies
+- Previous validated fixes
+
+Architecture:
+
+User Request
+→ Context Retriever
+→ Vector Search
+→ Relevant Knowledge
+→ Prompt Construction
+→ LLM
+→ Recommendation
+
+9. Embedding and Vector Search
+
+Code fragments, documentation, issues, and validated fixes can be converted into embeddings.
+
+Possible storage:
+
+- PostgreSQL + pgvector
+
+Example embedding entities:
+
+- Code snippets
+- Documentation chunks
+- Previous fixes
+- Security rules
+- Database optimization patterns
+- Deployment recommendations
+
+Metadata should include:
+
+- Project ID
+- File path
+- Language
+- Component
+- Timestamp
+- Source type
+- Version
+
+10. Prompt Engineering
+
+The AI system should use structured prompts rather than unrestricted prompts.
+
+A typical prompt should contain:
+
+SYSTEM RULES
++
+TASK
++
+CODE CONTEXT
++
+ERROR
++
+PROJECT CONTEXT
++
+CONSTRAINTS
++
+EXPECTED OUTPUT FORMAT
+
+Example Fix Prompt Structure
+
+Role:
+You are a code analysis and repair assistant.
+
+Task:
+Identify the root cause of the reported issue.
+
+Context:
+Programming language: Python
+File: database.py
+Function: get_user()
+
+Problem:
+Potential null reference.
+
+Requirements:
+
+- Preserve existing behavior.
+- Avoid unnecessary refactoring.
+- Do not introduce security vulnerabilities.
+- Provide the smallest safe patch.
+- Explain the proposed change.
+
+Output:
+
+{
+"root_cause": "...",
+"fix": "...",
+"reason": "...",
+"risk": "...",
+"confidence": 0.0
+}
+
+11. AI Confidence Scoring
+
+Every AI-generated recommendation should have a confidence score.
+
+Confidence should consider:
+
+- Model confidence
+- Rule-engine agreement
+- Static-analysis agreement
+- Test results
+- Historical success rate
+- Similarity to validated solutions
+- Security impact
+- Regression results
+
+Example:
+
+Confidence Score =
+
+0.30 × Model Confidence
++
+0.20 × Static Analysis Agreement
++
+0.20 × Test Validation
++
+0.15 × Historical Success
++
+0.10 × Context Relevance
++
+0.05 × Security Validation
+
+The exact weights should be configurable and tuned using evaluation data.
+
+12. Risk Scoring
+
+Confidence and risk are separate.
+
+A recommendation can have:
+
+High confidence + High risk
+
+Example:
+A database schema modification may be technically correct but dangerous to apply automatically.
+
+Risk factors:
+
+- File criticality
+- Number of files changed
+- Security impact
+- Database schema impact
+- API compatibility impact
+- Production environment impact
+- Number of tests affected
+- Deployment scope
+
+Risk levels:
+
+LOW
+MEDIUM
+HIGH
+CRITICAL
+
+13. Hallucination Prevention
+
+Because AI-generated fixes can be incorrect, the system should implement multiple safeguards.
+
+Safeguards
+
+1. Require structured model outputs.
+2. Never directly execute arbitrary AI-generated commands.
+3. Validate generated code before applying it.
+4. Run tests in an isolated environment.
+5. Re-run static analysis.
+6. Compare pre-fix and post-fix findings.
+7. Detect unsupported assumptions.
+8. Provide confidence and risk scores.
+9. Require developer approval for significant changes.
+10. Maintain complete audit logs.
+
+14. Database Optimization AI
+
+The database intelligence module analyzes SQL and database behavior.
+
+Inputs:
+
+- SQL query
+- Query execution plan
+- Execution time
+- Rows scanned
+- Rows returned
+- Index information
+- Table statistics
+- Schema relationships
+- Query frequency
+
+The system identifies:
+
+- Missing indexes
+- Unused indexes
+- Full table scans
+- Expensive joins
+- Inefficient sorting
+- Excessive data retrieval
+- Repeated queries
+- N+1 query patterns
+- Poor filtering
+- Suboptimal joins
+
+15. Query Optimization Pipeline
+
+SQL Query
+→ Parser
+→ Query Normalizer
+→ Execution Plan Analyzer
+→ Performance Model
+→ AI Optimizer
+→ Candidate Query
+→ Benchmark
+→ Compare
+→ Recommendation
+
+The AI should not claim a performance improvement without measurement.
+
+Example:
+
+Original Query
+Execution Time: 420 ms
+
+Optimized Query
+Execution Time: 170 ms
+
+Measured Improvement:
+59.5%
+
+16. Database Recommendation Model
+
+Recommendations can be ranked according to:
+
+- Performance improvement
+- Query frequency
+- Resource consumption
+- Implementation complexity
+- Production risk
+- Storage cost
+
+Example:
+
+Recommendation:
+Create composite index on users(email, status)
+
+Priority:
+HIGH
+
+Estimated benefit:
+High
+
+Risk:
+Low
+
+Evidence:
+Repeated sequential scan detected
+
+17. Security AI/ML
+
+Security analysis should combine deterministic security scanners with AI-assisted reasoning.
+
+Security categories:
+
+- SQL Injection
+- Command Injection
+- Cross-Site Scripting
+- Insecure Authentication
+- Authorization weaknesses
+- Hard-coded secrets
+- Unsafe deserialization
+- Path traversal
+- Insecure dependencies
+- Container vulnerabilities
+- IaC misconfiguration
+- Cloud configuration risks
+
+18. Security Finding Pipeline
+
+Code
+→ SAST Rules
+→ Dependency Scanner
+→ Secret Scanner
+→ Configuration Scanner
+→ ML Classification
+→ AI Explanation
+→ Severity/Risk Scoring
+→ Fix Recommendation
+→ Validation
+
+The AI should explain:
+
+- What is wrong
+- Why it matters
+- Where it occurs
+- Potential impact
+- Recommended remediation
+- Whether the recommendation was validated
+
+19. Secret Protection
+
+The AI/ML system must never expose full secrets unnecessarily.
+
+Before AI processing:
+
+Raw Secret
+→ Secret Detector
+→ Redaction
+→ Safe Context
+→ AI Processing
+
+Example:
+
+API_KEY=sk-****************
+
+Only masked representations or metadata should be retained.
+
+20. Deployment Intelligence AI
+
+The deployment module predicts deployment readiness based on multiple signals.
+
+Inputs:
+
+- Build status
+- Test results
+- Security findings
+- Dependency status
+- Configuration
+- Database changes
+- Performance metrics
+- Infrastructure configuration
+- Previous deployment failures
+
+Outputs:
+
+- Deployment readiness score
+- Risk level
+- Blocking issues
+- Warnings
+- Recommended actions
+
+21. Deployment Risk Model
+
+Example weighted model:
+
+Code Quality: 15%
+Security: 25%
+Testing: 20%
+Dependencies: 10%
+Configuration: 10%
+Performance: 10%
+Infrastructure: 10%
+
+Final:
+
+Deployment Readiness Score =
+
+Σ(weight × normalized component score)
+
+Example:
+
+Score: 91/100
+
+Decision:
+READY
+
+Score: 76/100
+
+Decision:
+REVIEW
+
+Score: 48/100
+
+Decision:
+BLOCKED
+
+The weights should be configurable based on organization requirements.
+
+22. Failure Prediction
+
+The system can optionally use supervised ML to predict deployment failure probability.
+
+Potential features:
+
+- Number of changed files
+- Number of changed lines
+- Test failure count
+- Security issue count
+- Dependency changes
+- Configuration changes
+- Database migrations
+- Previous deployment failures
+- Rollback frequency
+- Build duration
+- Test coverage change
+
+Output:
+
+Deployment Failure Probability:
+18%
+
+Risk:
+LOW
+
+23. Developer Feedback Learning
+
+Developer actions provide valuable training signals.
+
+Possible feedback:
+
+- Accepted fix
+- Rejected fix
+- Modified fix
+- Marked false positive
+- Marked issue as resolved
+- Dismissed recommendation
+- Applied optimization
+- Reverted recommendation
+
+These events can be stored as feedback records.
+
+Example:
+
+Finding → AI Recommendation → Developer Action
+
+This enables future ranking and personalization.
+
+24. ML Training Strategy
+
+The project should initially prioritize pre-trained models and rules rather than training a large foundation model from scratch.
+
+Phase 1
+
+Use:
+
+- Static analysis
+- Existing ML models
+- LLM API/local LLM
+- Rule engines
+
+Phase 2
+
+Collect anonymized feedback and validation data.
+
+Phase 3
+
+Train lightweight task-specific models for:
+
+- Finding classification
+- Severity prediction
+- False-positive detection
+- Fix ranking
+- Deployment failure prediction
+
+Phase 4
+
+Continuously evaluate and retrain models using validated datasets.
+
+25. Suggested ML Models
+
+Depending on the task:
+
+Classification
+
+Possible models:
+
+- Logistic Regression
+- Random Forest
+- XGBoost
+- LightGBM
+- Transformer-based classifiers
+
+Similarity Search
+
+Possible approach:
+
+- Code/text embeddings
+- Transformer embeddings
+- Vector similarity search
+
+Fix Generation
+
+Possible approach:
+
+- Code-capable LLM
+- Local code model
+- Hosted LLM API
+
+Deployment Prediction
+
+Possible models:
+
+- XGBoost
+- Random Forest
+- Gradient Boosting
+- Neural Network
+
+The MVP should prefer simpler models where they provide sufficient performance and interpretability.
+
+26. Model Selection Strategy
+
+Each task should use the simplest reliable model.
+
+Rule:
+
+Deterministic problem
+→ Rules
+
+Classification problem
+→ ML model
+
+Reasoning/generation problem
+→ LLM
+
+Performance prediction
+→ ML model
+
+Context retrieval
+→ Embedding + vector search
+
+27. AI Model Gateway
+
+All AI requests should pass through a central AI Model Gateway.
+
+Responsibilities:
+
+- Model selection
+- Prompt management
+- Rate limiting
+- Authentication
+- Token management
+- Input sanitization
+- Secret redaction
+- Response validation
+- Logging
+- Cost monitoring
+- Fallback model selection
+
+Architecture:
+
+Extension
+→ FastAPI
+→ AI Gateway
+→ Model Router
+→ Selected Model
+→ Response Validator
+→ Extension
+
+28. Multi-Model Strategy
+
+Different models may be used for different tasks.
+
+Example:
+
+Small/Fast Model:
+
+- Code explanation
+- Classification
+- Simple fixes
+
+Large/Reasoning Model:
+
+- Complex debugging
+- Multi-file reasoning
+- Architecture-level suggestions
+
+Specialized Model:
+
+- Code generation
+- SQL optimization
+- Security analysis
+
+Local Model:
+
+- Privacy-sensitive workloads
+
+29. Model Routing
+
+The router decides which model should process a request.
+
+Factors:
+
+- Task complexity
+- Context size
+- Privacy requirements
+- Required latency
+- Cost
+- Model availability
+
+Example:
+
+Simple syntax explanation
+→ Fast model
+
+Multi-file bug
+→ Advanced model
+
+Highly sensitive code
+→ Local model
+
+30. AI Output Validation
+
+Every AI response should pass a validation layer.
+
+Checks:
+
+- JSON/schema correctness
+- Required fields
+- Code syntax
+- Unsafe commands
+- Unsupported dependencies
+- Hallucinated APIs
+- Security issues
+- Patch applicability
+- Regression risk
+
+Invalid output:
+
+AI Response
+→ Validator
+→ FAILED
+→ Regenerate / Reject
+
+Valid output:
+
+AI Response
+→ Validator
+→ PASS
+→ Validation Engine
+
+31. Sandbox Architecture
+
+AI-generated code should be validated in an isolated sandbox.
+
+Sandbox capabilities:
+
+- Temporary filesystem
+- Restricted network
+- Resource limits
+- Process isolation
+- Timeout controls
+- Read/write restrictions
+- Disposable environment
+
+Workflow:
+
+Generated Fix
+→ Sandbox
+→ Build
+→ Tests
+→ Static Analysis
+→ Security Scan
+→ Result
+
+32. AI Evaluation Metrics
+
+The AI system should be evaluated continuously.
+
+Code Analysis
+
+- Precision
+- Recall
+- F1-score
+- False-positive rate
+
+Code Fixing
+
+- Patch success rate
+- Compilation success rate
+- Test pass rate
+- Regression rate
+- Developer acceptance rate
+
+Database Optimization
+
+- Query execution improvement
+- Recommendation acceptance rate
+- Benchmark success rate
+
+Security
+
+- Detection rate
+- False-positive rate
+- Remediation success rate
+
+Deployment
+
+- Prediction accuracy
+- Failure detection rate
+- False-block rate
+
+33. Key AI KPIs
+
+Target MVP metrics can include:
+
+- «90% precision for deterministic findings»
+- «80% validated-fix success rate for supported issue classes»
+- «90% syntax-valid generated patches»
+- <10% false-positive rate for high-confidence findings
+- «80% developer acceptance for high-confidence recommendations»
+- Measurable benchmark improvement for database recommendations
+- High recall for supported security vulnerability categories
+
+34. Continuous Learning Pipeline
+
+Developer Feedback
+↓
+Feedback Database
+↓
+Data Cleaning
+↓
+Label Generation
+↓
+Training Dataset
+↓
+Model Training
+↓
+Offline Evaluation
+↓
+Model Validation
+↓
+Model Registry
+↓
+Deployment
+↓
+Monitoring
+
+Models should not automatically retrain and deploy without evaluation gates.
+
+35. Model Monitoring
+
+Monitor:
+
+- Accuracy
+- Precision
+- Recall
+- False positives
+- False negatives
+- Latency
+- Token consumption
+- Cost
+- Failure rate
+- Developer acceptance
+- Model drift
+
+Alerts should be triggered when model quality drops below configured thresholds.
+
+36. Explainability
+
+AI recommendations should remain understandable to developers.
+
+Each recommendation should expose:
+
+- Finding
+- Evidence
+- Root cause
+- Recommended solution
+- Confidence
+- Risk
+- Validation status
+
+Example:
+
+Problem:
+Potential SQL injection.
+
+Why:
+User-controlled input is directly included in SQL construction.
+
+Recommendation:
+Use parameterized queries.
+
+Confidence:
+97%
+
+Risk:
+Low
+
+Validation:
+Security scan passed
+
+37. AI Safety and Security
+
+The AI system should implement:
+
+- Prompt injection protection
+- Input sanitization
+- Output validation
+- Secret redaction
+- Repository access control
+- Model access control
+- Audit logging
+- Rate limiting
+- Sandbox execution
+- Restricted network access
+- Secure API keys
+- Encryption in transit
+- Encryption at rest
+
+38. Privacy Architecture
+
+The system follows a privacy-first design.
+
+Preferred approach:
+
+Local analysis
+→ Send only required context
+→ Redact sensitive information
+→ Process AI request
+→ Delete temporary context
+
+The system should avoid uploading entire repositories unless explicitly required and permitted.
+
+39. AI/ML API Layer
+
+Example internal services:
+
+POST /api/v1/ai/analyze-code
+POST /api/v1/ai/explain
+POST /api/v1/ai/generate-fix
+POST /api/v1/ai/rank-fixes
+POST /api/v1/ai/analyze-query
+POST /api/v1/ai/generate-query-optimization
+POST /api/v1/ai/analyze-security
+POST /api/v1/ai/analyze-deployment
+POST /api/v1/ai/validate-recommendation
+
+40. Example AI Response
+
+{
+"request_id": "req_12345",
+"task": "code_fix",
+"finding_id": "find_123",
+"root_cause": "Potential null reference",
+"recommendation": "Validate the returned object before accessing its properties.",
+"patch": {
+"file": "src/user.py",
+"changes": []
+},
+"confidence": 0.94,
+"risk": "LOW",
+"validation": {
+"syntax": "PASS",
+"tests": "PASS",
+"security": "PASS",
+"regression": "PASS"
+}
+}
+
+41. Technology Stack
+
+Recommended MVP stack:
+
+Frontend:
+
+- TypeScript
+- VS Code Extension API
+- React
+- Tailwind CSS
+
+Backend:
+
+- Python
+- FastAPI
+
+AI/ML:
+
+- Python
+- scikit-learn
+- XGBoost
+- PyTorch where required
+- Transformer/embedding models
+- Code-capable LLM
+
+Code Analysis:
+
+- AST parsers
+- Language-specific linters
+- Static analysis tools
+
+Database:
+
+- PostgreSQL
+- pgvector
+
+Caching / Queue:
+
+- Redis
+
+Task Processing:
+
+- Celery / RQ / equivalent worker system
+
+Sandbox:
+
+- Docker-based isolated execution
+
+Monitoring:
+
+- Structured logs
+- Metrics
+- Error tracking
+
+42. End-to-End AI Workflow
+
+Developer writes code
+↓
+Extension detects change
+↓
+Static analysis
+↓
+Potential problem detected
+↓
+Context retrieval
+↓
+AI analysis
+↓
+Root-cause identification
+↓
+Fix generation
+↓
+Fix ranking
+↓
+Patch validation
+↓
+Security validation
+↓
+Test execution
+↓
+Confidence + risk calculation
+↓
+Developer preview
+↓
+Developer approval
+↓
+Patch applied
+↓
+Re-analysis
+↓
+Database optimization
+↓
+Security validation
+↓
+Deployment validation
+
+43. AI Decision Policy
+
+The system follows this basic policy:
+
+HIGH CONFIDENCE + LOW RISK + VALIDATED
+→ Recommend strongly
+
+HIGH CONFIDENCE + HIGH RISK
+→ Require developer approval
+
+LOW CONFIDENCE
+→ Explain as a suggestion
+
+FAILED VALIDATION
+→ Do not recommend application
+
+CRITICAL SECURITY ISSUE
+→ Flag as blocker where policy requires
+
+44. MVP vs Future AI Features
+
+MVP
+
+- Rule-based code analysis
+- LLM-powered explanations
+- AI fix generation
+- Patch validation
+- SQL optimization recommendations
+- Security finding explanation
+- Deployment risk scoring
+- Developer feedback collection
+- Confidence and risk scoring
+
+Future
+
+- Personalized coding recommendations
+- Repository-level reasoning
+- Advanced autonomous debugging
+- Self-learning fix ranking
+- Deployment failure prediction
+- Automatic regression detection
+- Organization-specific coding intelligence
+- Multi-agent code analysis
+- Local/private enterprise models
+
+45. Final AI/ML Architecture
+
+                DEVELOPER
+                    |
+                    v
+           IDE EXTENSION
+                    |
+                    v
+             FASTAPI BACKEND
+                    |
+            +-------+-------+
+            |               |
+            v               v
+    ANALYSIS ENGINE      AI GATEWAY
+            |               |
+    +-------+-------+       |
+    |       |       |       v
+   CODE   DB     SECURITY  MODEL ROUTER
+    |       |       |       |
+    |       |       |   +---+---+
+    |       |       |   |       |
+    v       v       v  LLM     ML
+   RULES   RULES   RULES
+    |       |       |
+    +-------+-------+
+            |
+            v
+    CONTEXT RETRIEVAL
+            |
+            v
+      RAG / VECTOR DB
+            |
+            v
+     AI RECOMMENDATION
+            |
+            v
+    CONFIDENCE + RISK
+            |
+            v
+      VALIDATION ENGINE
+            |
+    +-------+-------+
+    |       |       |
+  TESTS  SECURITY  BENCHMARK
+    |       |       |
+    +-------+-------+
+            |
+            v
+    DEVELOPER APPROVAL
+            |
+            v
+         APPLY
+            |
+            v
+   DEPLOYMENT VALIDATION
+            |
+            v
+   READY / REVIEW / BLOCKED
+
+46. Final AI/ML Objective
+
+The AI/ML subsystem should transform the extension from a traditional error-detection tool into an intelligent development assistant.
+
+Traditional approach:
+
+ERROR
+→ MESSAGE
+→ DEVELOPER FIXES IT
+
+Developer Intelligence approach:
+
+DETECT
+→ UNDERSTAND
+→ EXPLAIN
+→ GENERATE
+→ COMPARE
+→ VALIDATE
+→ SCORE
+→ APPROVE
+→ APPLY
+→ RE-ANALYZE
+→ OPTIMIZE
+→ SECURE
+→ DEPLOY
+
+The key principle is:
+
+"AI should recommend and assist, while deterministic analysis and validation provide the evidence needed to trust the recommendation."
