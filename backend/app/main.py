@@ -148,6 +148,31 @@ async def allow_asset_cors(request: Request, call_next):
     return response
 
 
+@app.get("/privacy")
+def serve_privacy():
+    return HTMLResponse(
+        """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — Developer Intelligence</title>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; max-width: 42rem; margin: 48px auto; padding: 0 24px; color: #0a0f1d; line-height: 1.6; }
+    a { color: #4f46e5; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p>Developer Intelligence is a demonstration workspace for repository analysis.</p>
+  <p>If you sign in with Google, we receive your name and email only to create a session in this app. We do not sell personal data or use Google data for advertising.</p>
+  <p>You can leave the app at any time. Contact the project owner if you want your session removed.</p>
+  <p><a href="/">Back to Developer Intelligence</a></p>
+</body>
+</html>"""
+    )
+
+
 @app.get("/")
 def serve_root():
     index_path = _frontend_index()
