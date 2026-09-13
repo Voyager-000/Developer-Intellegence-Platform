@@ -60,5 +60,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-public
+# Vercel copies frontend/dist here during build. Keep frontend/public tracked.
+/public
 
